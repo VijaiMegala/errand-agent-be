@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Home service booking backend",
+  "main": "app.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "migrate": "node migration/run.js",
+    "set-password": "node scripts/set-user-password.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.3.0",
+    "jose": "^6.2.16",
+    "pg": "^8.23.1",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
