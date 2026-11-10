@@ -13,7 +13,7 @@ Express API for customer and service provider accounts. Login details live in `u
 2. Copy `.env.example` to `.env` and fill in the PostgreSQL settings. Use `DB_SSL=true` for a remote PostgreSQL server; local PostgreSQL may use `DB_SSL=false`.
 3. Run `npm run migrate` to create the user and provider tables.
 4. Set `JWT_SECRET` to a random base64url-encoded secret of at least 32 bytes. Keep it stable across restarts.
-5. Run `npm start` (or `npm run dev`).
+5. Run `npm start`, or `npm run dev` to restart the API automatically when source files change.
 
 The API runs on `http://localhost:8000` by default. Swagger UI is at `http://localhost:8000/api/docs` and the OpenAPI JSON is at `/api/openapi.json`.
 
@@ -22,6 +22,12 @@ The API runs on `http://localhost:8000` by default. Swagger UI is at `http://loc
 | `POST` | `/api/users` | Register a customer or service provider |
 | `GET` | `/api/users?role=customer&limit=20&offset=0` | Admin lists users |
 | `POST` | `/api/auth/login` | Exchange email and password for a 15-minute access token |
+| `GET` | `/api/auth/introspect` | Validate a user access token for the MCP proxy |
+| `POST` | `/api/agent/chat` | Stream the errand agent response as JSONL |
+| `GET` | `/api/agent/sessions` | List my chat sessions and titles |
+| `GET` | `/api/agent/sessions/:sessionId/messages` | Read a session's conversation |
+| `PATCH` | `/api/agent/sessions/:sessionId` | Rename a session |
+| `DELETE` | `/api/agent/sessions/:sessionId` | Delete a session |
 | `GET` | `/api/users/:id` | Fetch your own details, or any user's details as admin |
 | `PATCH` | `/api/users/:id` | Update your own details, or any user's details as admin |
 | `PATCH` | `/api/users/:id/password` | Change your password and receive a new token |
@@ -36,6 +42,9 @@ The API runs on `http://localhost:8000` by default. Swagger UI is at `http://loc
 | `GET` | `/api/providers/:providerId/bookings` | Provider lists booking requests |
 | `PATCH` | `/api/providers/:providerId/bookings/:bookingId/accept` | Provider accepts an active hold |
 | `PATCH` | `/api/providers/:providerId/bookings/:bookingId/reject` | Provider rejects an active hold |
+| `GET` | `/api/providers/:providerId/reschedule-requests` | Provider lists requested new booking times |
+| `PATCH` | `/api/providers/:providerId/reschedule-requests/:requestId/accept` | Provider confirms a new booking time |
+| `PATCH` | `/api/providers/:providerId/reschedule-requests/:requestId/reject` | Provider declines a new booking time |
 | `GET` | `/api/notifications` | List my booking notifications |
 | `PATCH` | `/api/notifications/:notificationId/read` | Mark my notification as read |
 | `GET` | `/api/notifications/ws` | WebSocket stream for my new notifications |
@@ -70,15 +79,24 @@ A customer holds a time within a window using `{ "slotId": "<availability UUID>"
 
 If the provider rejects a booking, its customer can call `PATCH /api/bookings/:bookingId/reschedule` with a new `slotId`, `serviceId`, and `startsAt` for the same provider. The booking ID stays the same, its status returns to `held`, and a new ten-minute hold begins. The provider must decide again. Confirmed, held, cancelled, and expired bookings cannot use this route.
 
-Booking creation and rescheduling write a `booking_requested` notification event for the provider. Provider acceptance and rejection write `booking_confirmed` or `booking_rejected` for the customer. The database trigger records each event in `notification_outbox` in the same transaction as the booking change. Run `npm run notifications:worker` as a separate process with `REDIS_URL` configured. It publishes pending events to BullMQ in Redis and saves delivered in-app notifications. Users fetch their own notifications with `GET /api/notifications`; the worker retries failed jobs and delivery is idempotent. The booking hold deadline remains enforced by PostgreSQL, so notification delays do not change booking state.
+Direct booking requests and submitted agent holds write a `booking_requested` notification event for the provider. An unsubmitted agent hold sends no provider notification. Provider acceptance and rejection write `booking_confirmed` or `booking_rejected` for the customer. Agent reschedule requests write `reschedule_requested`, followed by `reschedule_confirmed` or `reschedule_rejected` when the provider decides. The database trigger records each event in `notification_outbox` in the same transaction as the request or booking change. Run `npm run notifications:worker` as a separate process with `REDIS_URL` configured. It publishes pending events to BullMQ in Redis and saves delivered in-app notifications. Users fetch their own notifications with `GET /api/notifications`; the worker retries failed jobs and delivery is idempotent. The booking hold deadline remains enforced by PostgreSQL, so notification delays do not change booking state.
 
 For live notifications, connect to `ws://localhost:8000/api/notifications/ws` (use `wss://` with HTTPS) with WebSocket subprotocols `['bearer', accessToken]`. The server first sends `{ "type": "ready" }`, then sends `{ "type": "notification", "data": { "id": "...", "bookingId": "...", "eventType": "booking_requested", "createdAt": "...", "readAt": null } }` only to the recipient. A customer receives `booking_confirmed` or `booking_rejected`; the provider receives `booking_requested` for new and rescheduled holds. Reconnect with a fresh access token when the 15-minute token expires, then call `GET /api/notifications` to catch anything missed while offline. Redis Pub/Sub carries live signals between API instances; the PostgreSQL inbox holds the durable history.
 
 Only an authenticated customer can add a review with `{ "rating": 5, "reviewText": "Helpful technician" }`. The reviewer ID is taken from the access token; it is not accepted in the request. Reviews can be read without a token. Reviews are not currently restricted to customers with a completed booking.
 
 `provider_services` stores individual priced offerings. `providers.service_type` and `providers.base_price` remain the provider's general specialty and starting price for compatibility with existing accounts.
+New provider availability windows require a `serviceId` from an active offering. Search proposes appointment starts that fit that service's duration inside its window. Fresh databases require a service for every window. In databases that ran the earlier migration sequence, legacy windows with exactly one active service were linked to it; ambiguous older windows remain shared until they are replaced.
 
 Log in with `POST /api/auth/login` using `{ "email": "asha@example.com", "password": "..." }`. Send the returned token as `Authorization: Bearer <accessToken>` for account endpoints. Customers and service providers may access only their own user account. An admin may list, fetch, update, and delete customer and service provider accounts. Password changes still require the account owner's current password. Changing a password invalidates previously issued tokens; deleting an account also invalidates them. There are no refresh tokens in this phase.
+
+The errand agent uses `LLM_PROVIDER`, `LLM_NAME`, and `LLM_API_KEY`. Start the live PostgreSQL MCP service in `db-mcp` and set `MCP_URL=http://127.0.0.1:5002/mcp`. The authenticated proxy validates the customer's backend access token and binds the verified user ID to booking tool calls. The MCP service reads and writes the same provider, availability, and booking tables as this API. Run `npm run migrate` before starting MCP. There is no separate `MCP_AUTH_TOKEN`.
+
+Send `{ "message": "Find a plumber in Indiranagar tomorrow" }` to `POST /api/agent/chat` with a customer bearer token. The response is `application/x-ndjson`: each line is a JSON event such as `session`, `delta`, `approval_required`, `done`, or `error`. Reuse the returned `sessionId` for later turns. Up to ten chat messages are passed in full; after that, older messages are summarized and the summary plus the latest ten messages are used. The summary and messages are stored in PostgreSQL.
+
+Customers can list their own sessions with `GET /api/agent/sessions?limit=50&offset=0` and fetch the stored conversation with `GET /api/agent/sessions/:sessionId/messages?limit=50&offset=0`. Both endpoints return `{ "data": [...] }`; sessions are newest activity first and messages are oldest first. A new session takes its first user message as its title (up to 120 characters). Rename it with `PATCH /api/agent/sessions/:sessionId` and `{ "title": "Kitchen plumbing" }`. Deleting a session removes its messages and pending approvals but keeps customer bookings. An active chat session cannot be deleted until its turn finishes.
+
+To submit a proposed booking or reschedule request, send `{ "sessionId": "<session UUID>", "approval": { "id": "<approval UUID>", "confirm": true } }` to the same endpoint. Show the customer the `approval_required` event's exact provider, service, start and end time, and quote before submission. The agent's temporary booking hold is private until submission. Only the provider owner can accept a booking through `/api/providers/:providerId/bookings/:bookingId/accept` or a changed time through `/api/providers/:providerId/reschedule-requests/:requestId/accept`. Customer submission never confirms either action. The legacy MCP `book` and `reschedule` tools return `provider_confirmation_required`. A plain chat message such as `yes` does not submit a request. Cancellation retains its separate approval flow.
 
 Create the first admin from a trusted terminal after running migrations: `npm run create-admin -- admin@example.com "Admin Name"`. The command prompts for a password without echoing it. Admin accounts cannot be created through public registration. Admin tokens do not grant permission to write customer reviews or manage a provider's services and slots; those routes retain their role and ownership rules.
 

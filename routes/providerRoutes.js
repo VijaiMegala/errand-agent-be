@@ -18,6 +18,9 @@ export function createProviderRouter(service, authService, bookingService) {
     router.get('/:providerId/bookings', authenticate, bookings.listProvider);
     router.patch('/:providerId/bookings/:bookingId/accept', authenticate, bookings.accept);
     router.patch('/:providerId/bookings/:bookingId/reject', authenticate, bookings.reject);
+    router.get('/:providerId/reschedule-requests', authenticate, bookings.listRescheduleRequests);
+    router.patch('/:providerId/reschedule-requests/:requestId/accept', authenticate, bookings.acceptRescheduleRequest);
+    router.patch('/:providerId/reschedule-requests/:requestId/reject', authenticate, bookings.rejectRescheduleRequest);
   }
   router.get('/:providerId/reviews', controller.listReviews);
   router.post('/:providerId/reviews', authenticate, controller.createReview);

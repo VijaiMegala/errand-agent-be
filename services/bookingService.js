@@ -46,6 +46,16 @@ export function createBookingService(repository) {
       await requireProviderOwner(providerId, actor);
       return repository.listProvider(providerId);
     },
+    async listRescheduleRequests(providerId, actor) {
+      await requireProviderOwner(providerId, actor);
+      return repository.listRescheduleRequests(providerId);
+    },
+    async decideRescheduleRequest(providerId, requestId, decision, actor) {
+      await requireProviderOwner(providerId, actor);
+      if (!uuid.test(requestId)) throw new HttpError(400, 'requestId must be a UUID');
+      if (!['accepted', 'rejected'].includes(decision)) throw new HttpError(400, 'Invalid reschedule decision');
+      return repository.decideRescheduleRequest(providerId, requestId, decision);
+    },
     async decide(providerId, bookingId, decision, actor) {
       await requireProviderOwner(providerId, actor);
       if (!uuid.test(bookingId)) throw new HttpError(400, 'bookingId must be a UUID');

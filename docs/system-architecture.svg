@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="1010" viewBox="0 0 1600 1010" role="img" aria-labelledby="title desc">
+  <title id="title">Home service booking system architecture</title>
+  <desc id="desc">Browser to Next.js to Express; Express connects to PostgreSQL and Mastra; Mastra connects to an LLM and authenticated MCP service; MCP connects to PostgreSQL and Express token introspection; PostgreSQL outbox feeds a notification worker through Redis and an API WebSocket endpoint.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1325"/><stop offset="1" stop-color="#101b32"/></linearGradient>
+    <linearGradient id="card" x2="0" y2="1"><stop stop-color="#1c2a43"/><stop offset="1" stop-color="#162238"/></linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a5b4fc"/></marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5eead4"/></marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .title { fill:#f8fafc; font-size:37px; font-weight:760; letter-spacing:-.8px; }
+      .subtitle { fill:#9eb0ca; font-size:17px; }
+      .lane { fill:#7285a8; font-size:14px; font-weight:700; letter-spacing:2.5px; }
+      .card { fill:url(#card); stroke:#354760; stroke-width:1.5; rx:19; }
+      .nodeTitle { fill:#f8fafc; font-size:23px; font-weight:730; }
+      .nodeSub { fill:#a9bbd1; font-size:16px; }
+      .pill { fill:#263856; rx:9; }
+      .pillText { fill:#a5b4fc; font-size:13px; font-weight:700; }
+      .edge { fill:none; stroke:#a5b4fc; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; marker-end:url(#arrow); }
+      .edgeBoth { fill:none; stroke:#a5b4fc; stroke-width:3; stroke-linecap:round; marker-start:url(#arrow); marker-end:url(#arrow); }
+      .event { fill:none; stroke:#5eead4; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; marker-end:url(#arrowGreen); }
+      .eventBoth { fill:none; stroke:#5eead4; stroke-width:3; stroke-linecap:round; marker-start:url(#arrowGreen); marker-end:url(#arrowGreen); }
+      .optional { stroke-dasharray:9 9; }
+      .label { fill:#c9d5ed; font-size:14px; font-weight:600; paint-order:stroke; stroke:#101b32; stroke-width:7px; stroke-linejoin:round; }
+      .eventLabel { fill:#82f2df; }
+      .foot { fill:#8da1bd; font-size:14px; }
+    </style>
+  </defs>
+  <rect width="1600" height="1010" fill="url(#bg)"/>
+  <text x="58" y="72" class="title">Home Service Booking · System Architecture</text>
+  <text x="60" y="106" class="subtitle">Implementation stack and data flow · November 2026</text>
+
+  <text x="60" y="150" class="lane">CLIENT</text>
+  <text x="359" y="150" class="lane">FRONTEND SERVER</text>
+  <text x="709" y="150" class="lane">APPLICATION</text>
+  <text x="1169" y="150" class="lane">AGENT &amp; TOOLS</text>
+
+  <rect x="60" y="175" width="245" height="180" class="card"/>
+  <circle cx="98" cy="214" r="16" fill="#7dd3fc" opacity=".18"/><text x="88" y="222" fill="#7dd3fc" font-size="24">◉</text>
+  <text x="87" y="265" class="nodeTitle">Browser</text>
+  <text x="87" y="294" class="nodeSub">Customer &amp; provider UI</text>
+  <text x="87" y="319" class="nodeSub">React · Material UI</text>
+
+  <rect x="360" y="175" width="270" height="180" class="card"/>
+  <rect x="386" y="198" width="79" height="28" class="pill"/><text x="398" y="217" class="pillText">NEXT.JS 16</text>
+  <text x="387" y="265" class="nodeTitle">Frontend server</text>
+  <text x="387" y="294" class="nodeSub">/api route proxy</text>
+  <text x="387" y="319" class="nodeSub">Streams chat NDJSON</text>
+
+  <rect x="710" y="175" width="360" height="235" class="card"/>
+  <rect x="738" y="198" width="83" height="28" class="pill"/><text x="751" y="217" class="pillText">EXPRESS 5</text>
+  <text x="738" y="266" class="nodeTitle">Backend API</text>
+  <text x="738" y="295" class="nodeSub">Auth · providers · bookings</text>
+  <text x="738" y="320" class="nodeSub">Agent chat · notifications</text>
+  <text x="738" y="345" class="nodeSub">Swagger / OpenAPI</text>
+  <text x="738" y="382" class="nodeSub">JWT + role / ownership checks</text>
+
+  <rect x="1170" y="175" width="360" height="125" class="card"/>
+  <rect x="1198" y="196" width="75" height="27" class="pill"/><text x="1210" y="215" class="pillText">MASTRA</text>
+  <text x="1198" y="257" class="nodeTitle">Errand agent</text>
+  <text x="1198" y="281" class="nodeSub">Search · proposals · approvals</text>
+
+  <rect x="1170" y="350" width="360" height="110" class="card"/>
+  <text x="1198" y="394" class="nodeTitle">LLM provider</text>
+  <text x="1198" y="422" class="nodeSub">Anthropic / OpenAI / Google</text>
+
+  <rect x="1170" y="555" width="360" height="155" class="card"/>
+  <rect x="1198" y="578" width="55" height="27" class="pill"/><text x="1212" y="597" class="pillText">MCP</text>
+  <text x="1198" y="638" class="nodeTitle">Authenticated tools</text>
+  <text x="1198" y="666" class="nodeSub">Proxy · Toolbox · booking engine</text>
+  <text x="1198" y="690" class="nodeSub">Provider search and booking actions</text>
+
+  <rect x="710" y="555" width="360" height="155" class="card"/>
+  <rect x="738" y="578" width="112" height="27" class="pill"/><text x="751" y="597" class="pillText">POSTGRESQL</text>
+  <text x="738" y="638" class="nodeTitle">System of record</text>
+  <text x="738" y="666" class="nodeSub">Users · services · slots · bookings</text>
+  <text x="738" y="690" class="nodeSub">Agent state · outbox · inbox · pg_trgm</text>
+
+  <rect x="360" y="555" width="270" height="155" class="card"/>
+  <rect x="388" y="578" width="72" height="27" class="pill"/><text x="400" y="597" class="pillText">BULLMQ</text>
+  <text x="388" y="638" class="nodeTitle">Notification worker</text>
+  <text x="388" y="666" class="nodeSub">Outbox poll · retries</text>
+  <text x="388" y="690" class="nodeSub">Inbox write · publish</text>
+
+  <rect x="60" y="555" width="245" height="155" class="card"/>
+  <rect x="87" y="578" width="64" height="27" class="pill"/><text x="100" y="597" class="pillText">REDIS</text>
+  <text x="87" y="638" class="nodeTitle">Queue &amp; Pub/Sub</text>
+  <text x="87" y="666" class="nodeSub">BullMQ jobs</text>
+  <text x="87" y="690" class="nodeSub">Live notification signals</text>
+
+  <rect x="710" y="815" width="360" height="112" class="card"/>
+  <rect x="738" y="837" width="35" height="26" class="pill"/><text x="747" y="855" class="pillText">WS</text>
+  <text x="787" y="856" class="nodeTitle" style="font-size:21px">API WebSocket endpoint</text>
+  <text x="738" y="891" class="nodeSub">Recipient-only live notifications</text>
+
+  <path d="M 305 264 H 360" class="edgeBoth"/><text x="313" y="249" class="label">HTTP</text>
+  <path d="M 630 264 H 710" class="edgeBoth"/><text x="635" y="249" class="label">API / NDJSON</text>
+  <path d="M 1070 231 H 1170" class="edgeBoth"/><text x="1082" y="217" class="label">agent calls</text>
+  <path d="M 1350 300 V 350" class="edgeBoth"/><text x="1363" y="330" class="label">model API</text>
+  <path d="M 1530 237 H 1561 V 510 H 1350 V 555" class="edgeBoth"/><text x="1394" y="504" class="label">MCP tools</text>
+  <path d="M 1170 593 H 1130 V 380 H 1070" class="edge"/><text x="1085" y="485" class="label">token introspection</text>
+  <path d="M 1170 632 H 1070" class="edgeBoth"/><text x="1082" y="618" class="label">SQL / writes</text>
+  <path d="M 891 410 V 555" class="edgeBoth"/><text x="905" y="489" class="label">SQL</text>
+  <path d="M 710 632 H 630" class="eventBoth"/><text x="636" y="617" class="label eventLabel">outbox / inbox</text>
+  <path d="M 360 632 H 305" class="eventBoth"/><text x="311" y="617" class="label eventLabel">jobs</text>
+  <path d="M 184 710 V 865 H 710" class="event"/><text x="335" y="851" class="label eventLabel">Pub/Sub notification signal</text>
+  <path d="M 710 875 H 34 V 308 H 60" class="event optional"/><text x="72" y="793" class="label eventLabel">direct WebSocket client (available API)</text>
+
+  <line x1="60" x2="1530" y1="962" y2="962" stroke="#31435e" stroke-width="1"/>
+  <text x="60" y="990" class="foot">Current UI polls the notification inbox via HTTP; the direct WebSocket path is available to clients.</text>
+</svg>

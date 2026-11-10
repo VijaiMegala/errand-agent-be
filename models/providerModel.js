@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { HttpError } from '../utils/httpError.js';
 
 export function createProviderRepository(pool) {
   return {
@@ -33,18 +34,20 @@ export function createProviderRepository(pool) {
 
     async createSlot(providerId, values) {
       const { rows } = await pool.query(
-        `INSERT INTO provider_slots (id, provider_id, starts_at, ends_at)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id, provider_id AS "providerId", starts_at AS "startsAt",
+        `INSERT INTO provider_slots (id, provider_id, service_id, starts_at, ends_at)
+         SELECT $1, $2, id, $4, $5 FROM provider_services
+         WHERE id = $3 AND provider_id = $2 AND active = TRUE
+         RETURNING id, provider_id AS "providerId", service_id AS "serviceId", starts_at AS "startsAt",
                    ends_at AS "endsAt", status, created_at AS "createdAt"`,
-        [randomUUID(), providerId, values.startsAt, values.endsAt],
+        [randomUUID(), providerId, values.serviceId, values.startsAt, values.endsAt],
       );
+      if (!rows[0]) throw new HttpError(404, 'Active service not found for provider');
       return rows[0];
     },
 
     async listSlots(providerId) {
       const { rows } = await pool.query(
-        `SELECT id, provider_id AS "providerId", starts_at AS "startsAt",
+        `SELECT id, provider_id AS "providerId", service_id AS "serviceId", starts_at AS "startsAt",
                 ends_at AS "endsAt", status, created_at AS "createdAt"
          FROM provider_slots WHERE provider_id = $1 AND starts_at >= NOW()
          ORDER BY starts_at LIMIT 100`,

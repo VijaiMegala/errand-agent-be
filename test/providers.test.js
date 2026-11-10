@@ -27,6 +27,9 @@ function fakeRepository() {
     },
     async listServices() { return services; },
     async createSlot(id, values) {
+      if (!services.some((item) => item.id === values.serviceId && item.active)) {
+        throw new HttpError(404, 'Active service not found for provider');
+      }
       if (slots.some((item) => item.startsAt < values.endsAt && item.endsAt > values.startsAt)) {
         throw Object.assign(new Error('overlap'), { code: '23P01' });
       }
@@ -97,14 +100,20 @@ test('only the listing owner creates services and slots, with bounded input and 
 
     const start = new Date(Date.now() + 86400000);
     const end = new Date(start.getTime() + 3600000);
-    const slot = { startsAt: start.toISOString(), endsAt: end.toISOString() };
+    const slot = { serviceId: created.body.data.id, startsAt: start.toISOString(), endsAt: end.toISOString() };
     assert.equal((await request(base, 'POST', slotsPath, slot, 'customer')).status, 403);
+    assert.equal((await request(base, 'POST', slotsPath, { startsAt: slot.startsAt, endsAt: slot.endsAt }, 'owner')).status, 400);
+    assert.equal((await request(base, 'POST', slotsPath, { ...slot, serviceId: randomUUID() }, 'owner')).status, 404);
     assert.equal((await request(base, 'POST', slotsPath, { ...slot, endsAt: slot.startsAt }, 'owner')).status, 400);
     assert.equal((await request(base, 'POST', slotsPath, {
+      serviceId: slot.serviceId,
       startsAt: '2027-02-30T10:00:00Z', endsAt: '2027-02-30T11:00:00Z',
     }, 'owner')).status, 400);
-    assert.equal((await request(base, 'POST', slotsPath, slot, 'owner')).status, 201);
+    const createdSlot = await request(base, 'POST', slotsPath, slot, 'owner');
+    assert.equal(createdSlot.status, 201);
+    assert.equal(createdSlot.body.data.serviceId, slot.serviceId);
     assert.equal((await request(base, 'POST', slotsPath, {
+      serviceId: slot.serviceId,
       startsAt: new Date(start.getTime() + 1800000).toISOString(),
       endsAt: new Date(end.getTime() + 1800000).toISOString(),
     }, 'owner')).status, 409);

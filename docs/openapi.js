@@ -79,6 +79,7 @@ export const openApiSpec = {
     { name: 'Providers', description: 'Service offerings, available slots, and customer reviews' },
     { name: 'Bookings', description: 'Customer reservations within provider availability' },
     { name: 'Notifications', description: 'In-app booking notifications delivered through BullMQ' },
+    { name: 'Agent', description: 'Authenticated errand chat with JSONL streaming' },
   ],
   components: {
     securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } },
@@ -146,10 +147,11 @@ export const openApiSpec = {
         },
       },
       ProviderSlot: {
-        type: 'object', required: ['id', 'providerId', 'startsAt', 'endsAt', 'status', 'createdAt'],
+        type: 'object', required: ['id', 'providerId', 'serviceId', 'startsAt', 'endsAt', 'status', 'createdAt'],
         properties: {
           id: { type: 'string', format: 'uuid' },
           providerId: { type: 'string', format: 'uuid' },
+          serviceId: { type: 'string', format: 'uuid', nullable: true, description: 'Null only on ambiguous legacy availability windows' },
           startsAt: { type: 'string', format: 'date-time' },
           endsAt: { type: 'string', format: 'date-time' },
           status: { type: 'string', enum: ['available', 'held', 'booked', 'unavailable'] },
@@ -157,8 +159,9 @@ export const openApiSpec = {
         },
       },
       CreateProviderSlot: {
-        type: 'object', additionalProperties: false, required: ['startsAt', 'endsAt'],
+        type: 'object', additionalProperties: false, required: ['serviceId', 'startsAt', 'endsAt'],
         properties: {
+          serviceId: { type: 'string', format: 'uuid', description: 'Active service offered by this provider' },
           startsAt: { type: 'string', format: 'date-time', description: 'Future timestamp with time zone' },
           endsAt: { type: 'string', format: 'date-time', description: 'After startsAt; at most 24 hours later' },
         },
@@ -182,12 +185,28 @@ export const openApiSpec = {
           startsAt: { type: 'string', format: 'date-time', description: 'Requested start with time zone; end is calculated from service duration' },
         },
       },
+      RescheduleRequest: {
+        type: 'object', required: ['id', 'bookingId', 'customerUserId', 'serviceId', 'oldStartsAt', 'startsAt', 'endsAt', 'quotedPrice', 'status', 'expiresAt', 'createdAt'],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          bookingId: { type: 'string', format: 'uuid' },
+          customerUserId: { type: 'string', format: 'uuid' },
+          serviceId: { type: 'string', format: 'uuid' },
+          oldStartsAt: { type: 'string', format: 'date-time' },
+          startsAt: { type: 'string', format: 'date-time' },
+          endsAt: { type: 'string', format: 'date-time' },
+          quotedPrice: { type: 'integer', minimum: 0 },
+          status: { type: 'string', enum: ['pending', 'accepted', 'rejected', 'expired'] },
+          expiresAt: { type: 'string', format: 'date-time' },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
       Notification: {
         type: 'object', required: ['id', 'bookingId', 'eventType', 'createdAt', 'readAt'],
         properties: {
           id: { type: 'integer', format: 'int64' },
           bookingId: { type: 'string', format: 'uuid' },
-          eventType: { type: 'string', enum: ['booking_requested', 'booking_confirmed', 'booking_rejected'] },
+          eventType: { type: 'string', enum: ['booking_requested', 'booking_confirmed', 'booking_rejected', 'reschedule_requested', 'reschedule_confirmed', 'reschedule_rejected'] },
           createdAt: { type: 'string', format: 'date-time' },
           readAt: { type: 'string', format: 'date-time', nullable: true },
         },
@@ -247,9 +266,134 @@ export const openApiSpec = {
           newPassword: { type: 'string', format: 'password', minLength: 8, maxLength: 16, writeOnly: true },
         },
       },
+      AgentChatRequest: {
+        oneOf: [
+          {
+            type: 'object', additionalProperties: false, required: ['message'],
+            properties: {
+              sessionId: { type: 'string', format: 'uuid', description: 'Omit to start a new session.' },
+              message: { type: 'string', minLength: 1, maxLength: 8000 },
+            },
+          },
+          {
+            type: 'object', additionalProperties: false, required: ['sessionId', 'approval'],
+            properties: {
+              sessionId: { type: 'string', format: 'uuid' },
+              approval: {
+                type: 'object', additionalProperties: false, required: ['id', 'confirm'],
+                properties: {
+                  id: { type: 'string', format: 'uuid' },
+                  confirm: { type: 'boolean', enum: [true], description: 'Approves this proposal; booking and reschedule proposals submit provider requests and do not confirm the booking' },
+                },
+              },
+            },
+          },
+        ],
+      },
+      AgentSession: {
+        type: 'object', required: ['id', 'title', 'createdAt', 'updatedAt'],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          title: { type: 'string', maxLength: 120 },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      AgentMessage: {
+        type: 'object', required: ['seq', 'role', 'content', 'createdAt'],
+        properties: {
+          seq: { type: 'integer', format: 'int64' },
+          role: { type: 'string', enum: ['user', 'assistant'] },
+          content: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
     },
   },
   paths: {
+    '/api/agent/sessions': {
+      get: {
+        tags: ['Agent'], summary: 'List my chat sessions', security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 50 } },
+          { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0, maximum: 1000000, default: 0 } },
+        ],
+        responses: {
+          200: { description: 'Sessions, newest activity first', content: json(dataList('AgentSession')) },
+          400: error('Invalid pagination'), 401: error('Access token required'), 403: error('Customer access required'),
+        },
+      },
+    },
+    '/api/agent/sessions/{sessionId}/messages': {
+      parameters: [{ name: 'sessionId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+      get: {
+        tags: ['Agent'], summary: 'Read my session conversation', security: [{ bearerAuth: [] }],
+        description: 'Returns stored user and assistant messages, oldest first. Older messages remain available after context summarization.',
+        parameters: [
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100, default: 50 } },
+          { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0, maximum: 1000000, default: 0 } },
+        ],
+        responses: {
+          200: { description: 'Conversation messages', content: json(dataList('AgentMessage')) },
+          400: error('Invalid ID or pagination'), 401: error('Access token required'),
+          403: error('Customer access required'), 404: error('Session not found'),
+        },
+      },
+    },
+    '/api/agent/sessions/{sessionId}': {
+      parameters: [{ name: 'sessionId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+      patch: {
+        tags: ['Agent'], summary: 'Rename my chat session', security: [{ bearerAuth: [] }],
+        requestBody: { required: true, content: json({
+          type: 'object', additionalProperties: false, required: ['title'],
+          properties: { title: { type: 'string', minLength: 1, maxLength: 120 } },
+        }) },
+        responses: {
+          200: { description: 'Renamed session', content: json(data('AgentSession')) },
+          400: error('Invalid ID or title'), 401: error('Access token required'),
+          403: error('Customer access required'), 404: error('Session not found'),
+        },
+      },
+      delete: {
+        tags: ['Agent'], summary: 'Delete my chat session', security: [{ bearerAuth: [] }],
+        description: 'Deletes its messages and approvals. Existing bookings remain linked to the customer.',
+        responses: {
+          204: { description: 'Session deleted' }, 400: error('Invalid ID'),
+          401: error('Access token required'), 403: error('Customer access required'),
+          404: error('Session not found'), 409: error('Session is processing a message'),
+        },
+      },
+    },
+    '/api/agent/chat': {
+      post: {
+        tags: ['Agent'], summary: 'Chat with the errand agent', security: [{ bearerAuth: [] }],
+        description: 'Customer only. Send a message with an optional sessionId, or approve a pending proposal in the same session. Approval of a booking or reschedule proposal submits a request to the provider; only provider acceptance confirms it. A new sessionId is sent in the session event. The response is newline-delimited JSON: session, zero or more delta events, an optional approval_required or action_outcome event, then done; a stream failure sends error. Conversation history is kept per customer. Once it grows beyond 10 messages, older messages are summarized and the latest 10 remain in context.',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/AgentChatRequest' } } },
+        },
+        responses: {
+          200: {
+            description: 'JSONL stream of agent events',
+            content: {
+              'application/x-ndjson': {
+                schema: {
+                  type: 'string',
+                  description: 'Each line is one JSON object: {type:"session",sessionId}, {type:"delta",text}, {type:"approval_required",approval}, {type:"done",...}, or {type:"error",error}.',
+                },
+                example: '{"type":"session","sessionId":"00000000-0000-4000-8000-000000000001"}\n{"type":"delta","text":"Hello"}\n{"type":"done","sessionId":"00000000-0000-4000-8000-000000000001"}\n',
+              },
+            },
+          },
+          400: error('Invalid chat request'),
+          401: error('Access token required or invalid'),
+          403: error('Customer access required'),
+          404: error('Session or approval not found'),
+          409: error('Session or approval conflict'),
+          500: error('Server error'),
+        },
+      },
+    },
     '/api/notifications': {
       get: {
         tags: ['Notifications'], summary: 'List my notifications', security: [{ bearerAuth: [] }],
@@ -286,6 +430,22 @@ export const openApiSpec = {
         responses: {
           200: { description: 'Access token', content: { 'application/json': { schema: { $ref: '#/components/schemas/TokenResponse' } } } },
           400: error('Invalid request'), 401: error('Invalid credentials'), 500: error('Server error'),
+        },
+      },
+    },
+    '/api/auth/introspect': {
+      get: {
+        tags: ['Auth'], summary: 'Validate the current access token', security: [{ bearerAuth: [] }],
+        description: 'Used by the authenticated MCP proxy. Checks signature, expiry, account role, and auth version.',
+        responses: {
+          200: { description: 'Active account', content: json({
+            type: 'object', required: ['active', 'userId', 'role'], properties: {
+              active: { type: 'boolean', enum: [true] },
+              userId: { type: 'string', format: 'uuid' },
+              role: { type: 'string', enum: ['customer', 'service_provider', 'admin'] },
+            },
+          }) },
+          401: error('Missing, invalid, expired, or revoked access token'),
         },
       },
     },
@@ -470,7 +630,7 @@ export const openApiSpec = {
       parameters: [providerId, { name: 'bookingId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
       patch: {
         tags: ['Bookings'], summary: 'Provider accepts an active hold', security: [{ bearerAuth: [] }],
-        description: 'Only the listing owner can accept before holdExpiresAt; acceptance confirms the booking.',
+        description: 'Only the listing owner can accept a submitted request before holdExpiresAt; acceptance confirms the booking.',
         responses: {
           200: { description: 'Confirmed booking', content: json(data('Booking')) },
           400: error('Invalid ID'), 401: error('Access token required'), 403: error('Not the provider owner'),
@@ -487,6 +647,41 @@ export const openApiSpec = {
           200: { description: 'Rejected booking', content: json(data('Booking')) },
           400: error('Invalid ID'), 401: error('Access token required'), 403: error('Not the provider owner'),
           404: error('Provider or booking not found'), 409: error('Hold expired or already decided'),
+        },
+      },
+    },
+    '/api/providers/{providerId}/reschedule-requests': {
+      parameters: [providerId],
+      get: {
+        tags: ['Bookings'], summary: 'Provider lists requested new booking times', security: [{ bearerAuth: [] }],
+        description: 'Only the listing owner can view these requests. The original booking time remains confirmed until the provider accepts.',
+        responses: {
+          200: { description: 'Up to 100 reschedule requests', content: json(dataList('RescheduleRequest')) },
+          401: error('Access token required'), 403: error('Not the provider owner'), 404: error('Provider not found'),
+        },
+      },
+    },
+    '/api/providers/{providerId}/reschedule-requests/{requestId}/accept': {
+      parameters: [providerId, { name: 'requestId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+      patch: {
+        tags: ['Bookings'], summary: 'Provider confirms a new booking time', security: [{ bearerAuth: [] }],
+        description: 'Only the listing owner can accept a pending request before it expires. The booking changes time atomically and is checked for availability again.',
+        responses: {
+          200: { description: 'Reschedule accepted' }, 400: error('Invalid ID'),
+          401: error('Access token required'), 403: error('Not the provider owner'),
+          404: error('Request not found'), 409: error('Request expired, changed, or time unavailable'),
+        },
+      },
+    },
+    '/api/providers/{providerId}/reschedule-requests/{requestId}/reject': {
+      parameters: [providerId, { name: 'requestId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+      patch: {
+        tags: ['Bookings'], summary: 'Provider declines a new booking time', security: [{ bearerAuth: [] }],
+        description: 'The original confirmed booking stays at its current time.',
+        responses: {
+          200: { description: 'Reschedule rejected' }, 400: error('Invalid ID'),
+          401: error('Access token required'), 403: error('Not the provider owner'),
+          404: error('Request not found'), 409: error('Request expired or already decided'),
         },
       },
     },

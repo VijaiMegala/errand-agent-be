@@ -36,7 +36,10 @@ function validateService(body) {
 }
 
 function validateSlot(body) {
-  requireBody(body, ['startsAt', 'endsAt']);
+  requireBody(body, ['serviceId', 'startsAt', 'endsAt']);
+  if (typeof body.serviceId !== 'string' || !uuidPattern.test(body.serviceId)) {
+    throw new HttpError(400, 'serviceId must be a UUID');
+  }
   const parseTime = (value) => {
     const match = typeof value === 'string' &&
       /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/.exec(value);
@@ -62,7 +65,7 @@ function validateSlot(body) {
       end.getTime() - start.getTime() > 24 * 60 * 60 * 1000) {
     throw new HttpError(400, 'Slot must be in the future and last no more than 24 hours');
   }
-  return { startsAt: start.toISOString(), endsAt: end.toISOString() };
+  return { serviceId: body.serviceId, startsAt: start.toISOString(), endsAt: end.toISOString() };
 }
 
 function validateReview(body) {

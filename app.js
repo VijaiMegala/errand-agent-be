@@ -6,12 +6,14 @@ import { config } from './config.js';
 import { openApiSpec } from './docs/openapi.js';
 import { pool } from './models/db.js';
 import { attachNotificationSocket } from './realtime/notificationSocket.js';
+import { createAgentRouter } from './routes/agentRoutes.js';
 import { createAuthRouter } from './routes/authRoutes.js';
 import { createBookingRouter } from './routes/bookingRoutes.js';
 import { createNotificationRouter } from './routes/notificationRoutes.js';
 import { createProviderRouter } from './routes/providerRoutes.js';
 import { createUserRouter } from './routes/userRoutes.js';
 import { authService as defaultAuthService } from './services/authService.js';
+import { agentService as defaultAgentService } from './services/agentService.js';
 import { bookingService as defaultBookingService } from './services/bookingService.js';
 import { notificationService as defaultNotificationService } from './services/notificationService.js';
 import { providerService as defaultProviderService } from './services/providerService.js';
@@ -24,6 +26,7 @@ export function createApp({
   providerService = defaultProviderService,
   bookingService = defaultBookingService,
   notificationService = defaultNotificationService,
+  agentService = defaultAgentService,
 } = {}) {
   const app = express();
   app.disable('x-powered-by');
@@ -50,6 +53,7 @@ export function createApp({
   app.use('/api/providers', createProviderRouter(providerService, authService, bookingService));
   app.use('/api/bookings', createBookingRouter(bookingService, authService));
   app.use('/api/notifications', createNotificationRouter(notificationService, authService));
+  app.use('/api/agent', createAgentRouter(agentService, authService));
 
   app.use((req, _res, next) => next(new HttpError(404, 'Route not found')));
   app.use((error, _req, res, _next) => {

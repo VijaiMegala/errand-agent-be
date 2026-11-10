@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS notification_outbox (
   id BIGSERIAL PRIMARY KEY,
   booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
   recipient_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  event_type VARCHAR(40) NOT NULL CHECK (event_type IN ('booking_requested', 'booking_confirmed', 'booking_rejected')),
+  event_type VARCHAR(40) NOT NULL CHECK (event_type IN ('booking_requested', 'booking_confirmed', 'booking_rejected',
+    'reschedule_requested', 'reschedule_confirmed', 'reschedule_rejected')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   enqueued_at TIMESTAMPTZ,
   delivered_at TIMESTAMPTZ
@@ -24,13 +25,14 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS notifications_recipient_idx
   ON notifications (recipient_user_id, created_at DESC, id DESC);
 
-CREATE OR REPLACE FUNCTION enqueue_booking_notification()
+CREATE FUNCTION enqueue_booking_notification()
 RETURNS trigger AS $$
 DECLARE
   recipient UUID;
   event_name VARCHAR(40);
 BEGIN
-  IF TG_OP = 'INSERT' OR (OLD.status = 'rejected' AND NEW.status = 'held') THEN
+  IF TG_OP = 'INSERT' THEN RETURN NEW; END IF;
+  IF OLD.status = 'rejected' AND NEW.status = 'held' THEN
     SELECT user_id INTO recipient FROM providers WHERE id = NEW.provider_id;
     event_name := 'booking_requested';
   ELSIF NEW.status = 'confirmed' AND OLD.status = 'held' THEN

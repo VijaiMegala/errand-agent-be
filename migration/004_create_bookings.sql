@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   status VARCHAR(20) NOT NULL DEFAULT 'held'
     CHECK (status IN ('held', 'confirmed', 'rejected', 'cancelled', 'expired')),
   hold_expires_at TIMESTAMPTZ,
+  quoted_price INTEGER NOT NULL
+    CONSTRAINT bookings_quoted_price_nonnegative CHECK (quoted_price >= 0),
   CONSTRAINT bookings_hold_expiry_check CHECK (status <> 'held' OR hold_expires_at IS NOT NULL),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -17,7 +19,7 @@ CREATE INDEX IF NOT EXISTS bookings_customer_idx ON bookings (customer_user_id, 
 CREATE INDEX IF NOT EXISTS bookings_provider_time_idx ON bookings (provider_id, starts_at, ends_at)
   WHERE status IN ('held', 'confirmed');
 
-CREATE OR REPLACE FUNCTION guard_booking()
+CREATE FUNCTION guard_booking()
 RETURNS trigger AS $$
 DECLARE
   selected_slot provider_slots%ROWTYPE;
@@ -25,27 +27,42 @@ DECLARE
 BEGIN
   PERFORM pg_advisory_xact_lock(hashtext(NEW.provider_id::text)::bigint);
   IF TG_OP = 'UPDATE' THEN
-    IF (NEW.provider_id, NEW.slot_id, NEW.service_id, NEW.customer_user_id,
-        NEW.starts_at, NEW.ends_at, NEW.created_at) IS DISTINCT FROM
-       (OLD.provider_id, OLD.slot_id, OLD.service_id, OLD.customer_user_id,
-        OLD.starts_at, OLD.ends_at, OLD.created_at) THEN
-      RAISE EXCEPTION 'Booking details cannot be changed' USING ERRCODE = '23514';
+    IF (NEW.provider_id, NEW.customer_user_id, NEW.created_at) IS DISTINCT FROM
+       (OLD.provider_id, OLD.customer_user_id, OLD.created_at) THEN
+      RAISE EXCEPTION 'Booking owner and provider cannot be changed' USING ERRCODE = '23514';
     END IF;
-    IF OLD.status <> 'held' OR NEW.status NOT IN ('confirmed', 'rejected', 'cancelled', 'expired') THEN
+    IF OLD.status = 'held' AND NEW.status IN ('confirmed', 'rejected', 'cancelled', 'expired') THEN
+      IF (NEW.slot_id, NEW.service_id, NEW.starts_at, NEW.ends_at, NEW.quoted_price) IS DISTINCT FROM
+         (OLD.slot_id, OLD.service_id, OLD.starts_at, OLD.ends_at, OLD.quoted_price) THEN
+        RAISE EXCEPTION 'Booking details cannot be changed while deciding a hold' USING ERRCODE = '23514';
+      END IF;
+      IF NEW.status IN ('confirmed', 'rejected') AND OLD.hold_expires_at <= clock_timestamp() THEN
+        RAISE EXCEPTION 'Booking hold expired' USING ERRCODE = '23514';
+      END IF;
+    ELSIF OLD.status = 'rejected' AND NEW.status = 'held' THEN
+      NULL; -- Existing backend reschedule flow creates a new hold.
+    ELSIF OLD.status = 'confirmed' AND NEW.status = 'cancelled' THEN
+      IF (NEW.slot_id, NEW.service_id, NEW.starts_at, NEW.ends_at, NEW.quoted_price) IS DISTINCT FROM
+         (OLD.slot_id, OLD.service_id, OLD.starts_at, OLD.ends_at, OLD.quoted_price) THEN
+        RAISE EXCEPTION 'Cancellation cannot change booking details' USING ERRCODE = '23514';
+      END IF;
+    ELSIF OLD.status = 'confirmed' AND NEW.status = 'confirmed' THEN
+      IF (NEW.slot_id, NEW.starts_at) IS NOT DISTINCT FROM (OLD.slot_id, OLD.starts_at) THEN
+        RAISE EXCEPTION 'Reschedule requires a new slot' USING ERRCODE = '23514';
+      END IF;
+    ELSE
       RAISE EXCEPTION 'Invalid booking status change' USING ERRCODE = '23514';
     END IF;
-    IF NEW.status IN ('confirmed', 'rejected') AND OLD.hold_expires_at <= clock_timestamp() THEN
-      RAISE EXCEPTION 'Booking hold expired' USING ERRCODE = '23514';
+    IF NEW.status <> 'held' AND NEW.hold_expires_at IS DISTINCT FROM OLD.hold_expires_at THEN
+      RAISE EXCEPTION 'Booking hold expiry cannot be changed' USING ERRCODE = '23514';
     END IF;
   END IF;
   IF NEW.status = 'held' THEN
-    IF TG_OP = 'UPDATE' OR NEW.hold_expires_at IS NULL OR
+    IF (TG_OP = 'UPDATE' AND OLD.status <> 'rejected') OR NEW.hold_expires_at IS NULL OR
        NEW.hold_expires_at <= clock_timestamp() OR
        NEW.hold_expires_at > clock_timestamp() + interval '10 minutes' THEN
       RAISE EXCEPTION 'Invalid booking hold expiry' USING ERRCODE = '23514';
     END IF;
-  ELSIF TG_OP = 'UPDATE' AND NEW.hold_expires_at IS DISTINCT FROM OLD.hold_expires_at THEN
-    RAISE EXCEPTION 'Booking hold expiry cannot be changed' USING ERRCODE = '23514';
   END IF;
   IF NEW.status IN ('held', 'confirmed') THEN
     SELECT * INTO selected_slot FROM provider_slots WHERE id = NEW.slot_id AND provider_id = NEW.provider_id;
@@ -76,3 +93,22 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER bookings_guard BEFORE INSERT OR UPDATE ON bookings
   FOR EACH ROW EXECUTE FUNCTION guard_booking();
+
+CREATE FUNCTION require_booking_slot_service()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.status IN ('held', 'confirmed') AND EXISTS (
+    SELECT 1 FROM provider_slots
+    WHERE id = NEW.slot_id AND provider_id = NEW.provider_id
+      AND service_id IS NOT NULL AND service_id <> NEW.service_id
+  ) THEN
+    RAISE EXCEPTION 'Booking service must match its availability window'
+      USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER bookings_slot_service_guard
+  BEFORE INSERT OR UPDATE ON bookings
+  FOR EACH ROW EXECUTE FUNCTION require_booking_slot_service();

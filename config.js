@@ -26,6 +26,12 @@ export const config = {
   corsOrigin: process.env.CROSS_ORIGIN || null,
   jwtSecret: process.env.JWT_SECRET,
   redisUrl: process.env.REDIS_URL || null,
+  mcpUrl: process.env.MCP_URL || 'http://127.0.0.1:5002/mcp',
+  llm: {
+    provider: process.env.LLM_PROVIDER,
+    name: process.env.LLM_NAME,
+    apiKey: process.env.LLM_API_KEY,
+  },
   db: {
     host: dbHost,
     port: dbPort,
