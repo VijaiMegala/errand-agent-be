@@ -8,7 +8,8 @@
     "start": "node app.js",
     "dev": "node --watch app.js",
     "migrate": "node migration/run.js",
-    "set-password": "node scripts/set-user-password.js"
+    "set-password": "node scripts/set-user-password.js",
+    "create-admin": "node scripts/create-admin.js"
   },
   "keywords": [],
   "author": "",

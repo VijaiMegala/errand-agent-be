@@ -1,5 +1,9 @@
 export function createUserController(service) {
   return {
+    async list(req, res, next) {
+      try { res.json({ data: await service.list(req.query) }); }
+      catch (error) { next(error); }
+    },
     async create(req, res, next) {
       try {
         const user = await service.create(req.body);

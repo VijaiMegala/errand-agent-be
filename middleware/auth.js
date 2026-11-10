@@ -20,3 +20,18 @@ export function requireSelf(req, _res, next) {
   }
   next();
 }
+
+export function requireSelfOrAdmin(req, _res, next) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(req.params.id)) {
+    return next(new HttpError(400, 'id must be a UUID'));
+  }
+  if (req.auth.role !== 'admin' && req.auth.id.toLowerCase() !== req.params.id.toLowerCase()) {
+    return next(new HttpError(403, 'You can access only your own account'));
+  }
+  next();
+}
+
+export function requireAdmin(req, _res, next) {
+  if (req.auth.role !== 'admin') return next(new HttpError(403, 'Admin access required'));
+  next();
+}

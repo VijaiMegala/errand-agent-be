@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY,
-  role VARCHAR(32) NOT NULL CHECK (role IN ('customer', 'service_provider')),
+  role VARCHAR(32) NOT NULL CHECK (role IN ('customer', 'service_provider', 'admin')),
   full_name VARCHAR(120) NOT NULL CHECK (length(trim(full_name)) >= 2),
   email VARCHAR(254) NOT NULL CHECK (email = lower(email)),
   phone VARCHAR(16),

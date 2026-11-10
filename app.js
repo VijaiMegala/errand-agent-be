@@ -6,12 +6,21 @@ import { config } from './config.js';
 import { openApiSpec } from './docs/openapi.js';
 import { pool } from './models/db.js';
 import { createAuthRouter } from './routes/authRoutes.js';
+import { createBookingRouter } from './routes/bookingRoutes.js';
+import { createProviderRouter } from './routes/providerRoutes.js';
 import { createUserRouter } from './routes/userRoutes.js';
 import { authService as defaultAuthService } from './services/authService.js';
+import { bookingService as defaultBookingService } from './services/bookingService.js';
+import { providerService as defaultProviderService } from './services/providerService.js';
 import { userService as defaultUserService } from './services/userService.js';
 import { HttpError } from './utils/httpError.js';
 
-export function createApp({ userService = defaultUserService, authService = defaultAuthService } = {}) {
+export function createApp({
+  userService = defaultUserService,
+  authService = defaultAuthService,
+  providerService = defaultProviderService,
+  bookingService = defaultBookingService,
+} = {}) {
   const app = express();
   app.disable('x-powered-by');
 
@@ -21,7 +30,7 @@ export function createApp({ userService = defaultUserService, authService = defa
         res.set('Access-Control-Allow-Origin', config.corsOrigin);
         res.set('Vary', 'Origin');
         res.set('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
+        res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         if (req.method === 'OPTIONS') return res.status(204).end();
       }
       next();
@@ -34,13 +43,25 @@ export function createApp({ userService = defaultUserService, authService = defa
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
   app.use('/api/auth', createAuthRouter(authService));
   app.use('/api/users', createUserRouter(userService, authService));
+  app.use('/api/providers', createProviderRouter(providerService, authService, bookingService));
+  app.use('/api/bookings', createBookingRouter(bookingService, authService));
 
   app.use((req, _res, next) => next(new HttpError(404, 'Route not found')));
   app.use((error, _req, res, _next) => {
     if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
       return res.status(400).json({ error: 'Malformed JSON body' });
     }
-    if (error.code === '23505') return res.status(409).json({ error: 'Email is already registered' });
+    if (error.code === '23505') {
+      const messages = {
+        provider_services_name_unique: 'Service already exists for this provider',
+        users_email_unique: 'Email is already registered',
+        provider_slots_provider_id_starts_at_key: 'Slot overlaps an existing slot',
+      };
+      return res.status(409).json({ error: messages[error.constraint] ?? 'Resource already exists' });
+    }
+    if (error.code === '23P01') return res.status(409).json({ error: error.message.includes('booking') ? 'Requested time overlaps an existing booking' : 'Slot overlaps an existing slot' });
+    if (error.code === '23514' && error.message.includes('Booking')) return res.status(409).json({ error: error.message });
+    if (error.code === '23503') return res.status(409).json({ error: 'Referenced record no longer exists' });
     if (error instanceof HttpError) return res.status(error.status).json({ error: error.message });
     console.error('Request failed:', error);
     return res.status(500).json({ error: 'Internal server error' });
