@@ -22,6 +22,9 @@ test('customers create holds; only the listing owner accepts or rejects them', a
     async findProviderOwner(id) { return id === providerId ? owner.id : null; },
     async listProvider(id) { return id === providerId ? saved : []; },
     async decide(_providerId, bookingId, decision) { return { id: bookingId, status: decision }; },
+    async reschedule(bookingId, customerId, booking) {
+      return { id: bookingId, customerUserId: customerId, status: 'held', ...booking };
+    },
   });
   await service.create(providerId, actor, values);
   assert.equal(saved[0].provider, providerId);
@@ -31,6 +34,11 @@ test('customers create holds; only the listing owner accepts or rejects them', a
   assert.equal((await service.listProvider(providerId, owner)).length, 1);
   assert.equal((await service.decide(providerId, randomUUID(), 'confirmed', owner)).status, 'confirmed');
   assert.equal((await service.decide(providerId, randomUUID(), 'rejected', owner)).status, 'rejected');
+  const rescheduled = await service.reschedule(randomUUID(), actor, values);
+  assert.equal(rescheduled.status, 'held');
+  assert.equal(rescheduled.customerUserId, actor.id);
+  await assert.rejects(service.reschedule(randomUUID(), owner, values), { status: 403 });
+  await assert.rejects(service.reschedule(randomUUID(), actor, { ...values, providerId: randomUUID() }), { status: 400 });
   await assert.rejects(service.decide(providerId, randomUUID(), 'confirmed', actor), { status: 403 });
   await assert.rejects(service.decide(providerId, randomUUID(), 'confirmed', { id: randomUUID(), role: 'service_provider' }), { status: 403 });
   await assert.rejects(service.decide(providerId, 'invalid', 'confirmed', owner), { status: 400 });
@@ -41,6 +49,7 @@ test('customers create holds; only the listing owner accepts or rejects them', a
   assert.ok(openApiSpec.paths['/api/providers/{providerId}/bookings/{bookingId}/accept'].patch.responses[409]);
   assert.ok(openApiSpec.paths['/api/providers/{providerId}/bookings/{bookingId}/reject'].patch.responses[409]);
   assert.equal(openApiSpec.paths['/api/bookings/{bookingId}/confirm'], undefined);
+  assert.ok(openApiSpec.paths['/api/bookings/{bookingId}/reschedule'].patch.responses[409]);
 });
 
 test('provider decision routes reject customers and other providers', async () => {
@@ -55,6 +64,7 @@ test('provider decision routes reject customers and other providers', async () =
     async findProviderOwner(id) { return id === providerId ? owner.id : null; },
     async listProvider() { return [{ id: bookingId, status: 'held' }]; },
     async decide(_providerId, id, status) { return { id, status }; },
+    async reschedule(id, customerId) { return { id, customerUserId: customerId, status: 'held' }; },
   });
   const authService = {
     async authenticate(token) {
@@ -66,9 +76,13 @@ test('provider decision routes reject customers and other providers', async () =
   await new Promise((resolve) => server.once('listening', resolve));
   try {
     const base = `http://127.0.0.1:${server.address().port}`;
-    const request = async (method, path, token) => {
+    const request = async (method, path, token, body) => {
       const response = await fetch(base + path, {
-        method, headers: token ? { authorization: `Bearer ${token}` } : {},
+        method, headers: {
+          ...(token ? { authorization: `Bearer ${token}` } : {}),
+          ...(body ? { 'content-type': 'application/json' } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
       });
       return response.status;
     };
@@ -81,5 +95,8 @@ test('provider decision routes reject customers and other providers', async () =
     assert.equal(await request('PATCH', `${path}/${bookingId}/accept`, 'owner'), 200);
     assert.equal(await request('PATCH', `${path}/${bookingId}/reject`, 'owner'), 200);
     assert.equal(await request('PATCH', `/api/bookings/${bookingId}/confirm`, 'customer'), 404);
+    const newTime = { slotId: randomUUID(), serviceId: randomUUID(), startsAt: new Date(Date.now() + 86400000).toISOString() };
+    assert.equal(await request('PATCH', `/api/bookings/${bookingId}/reschedule`, 'customer', newTime), 200);
+    assert.equal(await request('PATCH', `/api/bookings/${bookingId}/reschedule`, 'owner', newTime), 403);
   } finally { await new Promise((resolve) => server.close(resolve)); }
 });

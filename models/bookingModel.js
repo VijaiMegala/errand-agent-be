@@ -7,6 +7,7 @@ const fields = `id, provider_id AS "providerId", slot_id AS "slotId",
   hold_expires_at AS "holdExpiresAt", created_at AS "createdAt"`;
 const listFields = fields.replace('status,', `CASE WHEN status = 'held' AND hold_expires_at <= clock_timestamp()
   THEN 'expired' ELSE status END AS status,`);
+const qualifiedFields = fields.replace(/\b(id|provider_id|slot_id|service_id|customer_user_id|starts_at|ends_at|status|hold_expires_at|created_at)\b/g, 'b.$1');
 
 export function createBookingRepository(pool) {
   return {
@@ -22,6 +23,27 @@ export function createBookingRepository(pool) {
       );
       if (!rows[0]) throw new HttpError(404, 'Active service not found for provider');
       return rows[0];
+    },
+    async reschedule(bookingId, customerUserId, values) {
+      const { rows } = await pool.query(
+        `UPDATE bookings AS b
+         SET slot_id = $3, service_id = $4, starts_at = $5::timestamptz,
+             ends_at = $5::timestamptz + make_interval(mins => s.duration_minutes),
+             status = 'held', hold_expires_at = clock_timestamp() + interval '10 minutes'
+         FROM provider_services AS s
+         WHERE b.id = $1 AND b.customer_user_id = $2 AND b.status = 'rejected'
+           AND s.id = $4 AND s.provider_id = b.provider_id AND s.active = TRUE
+         RETURNING ${qualifiedFields}`,
+        [bookingId, customerUserId, values.slotId, values.serviceId, values.startsAt],
+      );
+      if (rows[0]) return rows[0];
+      const existing = await pool.query(
+        'SELECT status FROM bookings WHERE id = $1 AND customer_user_id = $2',
+        [bookingId, customerUserId],
+      );
+      if (!existing.rowCount) throw new HttpError(404, 'Booking not found');
+      if (existing.rows[0].status !== 'rejected') throw new HttpError(409, 'Only rejected bookings can be rescheduled');
+      throw new HttpError(404, 'Active service not found for provider');
     },
     async listMine(customerUserId) {
       const { rows } = await pool.query(

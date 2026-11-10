@@ -10,6 +10,10 @@ export function createBookingController(service) {
       try { res.json({ data: await service.listMine(req.auth) }); }
       catch (error) { next(error); }
     },
+    async reschedule(req, res, next) {
+      try { res.json({ data: await service.reschedule(req.params.bookingId, req.auth, req.body) }); }
+      catch (error) { next(error); }
+    },
     async listProvider(req, res, next) {
       try { res.json({ data: await service.listProvider(req.params.providerId, req.auth) }); }
       catch (error) { next(error); }

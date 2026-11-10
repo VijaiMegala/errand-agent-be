@@ -32,6 +32,7 @@ The API runs on `http://localhost:8000` by default. Swagger UI is at `http://loc
 | `GET` | `/api/providers/:providerId/slots` | List upcoming slots |
 | `POST` | `/api/providers/:providerId/bookings` | Customer holds a time for ten minutes |
 | `GET` | `/api/bookings` | Customer lists their bookings |
+| `PATCH` | `/api/bookings/:bookingId/reschedule` | Customer reschedules their rejected booking |
 | `GET` | `/api/providers/:providerId/bookings` | Provider lists booking requests |
 | `PATCH` | `/api/providers/:providerId/bookings/:bookingId/accept` | Provider accepts an active hold |
 | `PATCH` | `/api/providers/:providerId/bookings/:bookingId/reject` | Provider rejects an active hold |
@@ -63,6 +64,8 @@ For a service provider, `GET /api/users/:id` includes `providerDetails` with the
 The provider ID comes from `providerDetails.id`. A provider owner can create a service with `{ "name": "Kitchen tap repair", "price": 1200, "durationMinutes": 60, "description": "Fix a leaking tap" }`. They can create an availability window with ISO timestamps such as `{ "startsAt": "2026-12-01T10:00:00+05:30", "endsAt": "2026-12-01T17:00:00+05:30" }`. Windows must be in the future, last no more than 24 hours, and not overlap another window for that provider. The provider chooses specific days by creating windows on those dates.
 
 A customer holds a time within a window using `{ "slotId": "<availability UUID>", "serviceId": "<service UUID>", "startsAt": "2026-12-01T10:30:00+05:30" }` at `POST /api/providers/:providerId/bookings`. The end time follows the service duration. The response has `status: "held"` and `holdExpiresAt` ten minutes later. The provider owner sees the request at `GET /api/providers/:providerId/bookings` and accepts or rejects it before that deadline. Acceptance confirms the booking; rejection frees the time immediately. Customers cannot accept or reject. The database checks that the time fits availability and does not overlap a confirmed booking or unexpired hold, including concurrent requests. A conflict returns HTTP 409. Expired holds stop blocking immediately, and booking lists report them as `expired`. Adjacent bookings are allowed.
+
+If the provider rejects a booking, its customer can call `PATCH /api/bookings/:bookingId/reschedule` with a new `slotId`, `serviceId`, and `startsAt` for the same provider. The booking ID stays the same, its status returns to `held`, and a new ten-minute hold begins. The provider must decide again. Confirmed, held, cancelled, and expired bookings cannot use this route.
 
 Only an authenticated customer can add a review with `{ "rating": 5, "reviewText": "Helpful technician" }`. The reviewer ID is taken from the access token; it is not accepted in the request. Reviews can be read without a token. Reviews are not currently restricted to customers with a completed booking.
 

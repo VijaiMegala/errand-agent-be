@@ -412,6 +412,20 @@ export const openApiSpec = {
         },
       },
     },
+    '/api/bookings/{bookingId}/reschedule': {
+      parameters: [{ name: 'bookingId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+      patch: {
+        tags: ['Bookings'], summary: 'Reschedule my rejected booking', security: [{ bearerAuth: [] }],
+        description: 'Only the customer who owns a rejected booking can choose a new available slot and service with the same provider. The booking keeps its ID and returns to held with a fresh ten-minute deadline. The provider must accept or reject again.',
+        requestBody: { required: true, content: json({ $ref: '#/components/schemas/CreateBooking' }) },
+        responses: {
+          200: { description: 'Rescheduled booking hold', content: json(data('Booking')) },
+          400: error('Invalid booking ID or time'), 401: error('Access token required'),
+          403: error('Only customers can reschedule'), 404: error('Booking or active service not found'),
+          409: error('Booking is not rejected or new time overlaps another booking'),
+        },
+      },
+    },
     '/api/providers/{providerId}/bookings/{bookingId}/accept': {
       parameters: [providerId, { name: 'bookingId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
       patch: {
