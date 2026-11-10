@@ -59,7 +59,7 @@ export function createApp({
       };
       return res.status(409).json({ error: messages[error.constraint] ?? 'Resource already exists' });
     }
-    if (error.code === '23P01') return res.status(409).json({ error: error.message.includes('booking') ? 'Requested time overlaps an existing booking' : 'Slot overlaps an existing slot' });
+    if (error.code === '23P01') return res.status(409).json({ error: error.message.includes('booking') ? 'Requested time overlaps an existing booking or hold' : 'Slot overlaps an existing slot' });
     if (error.code === '23514' && error.message.includes('Booking')) return res.status(409).json({ error: error.message });
     if (error.code === '23503') return res.status(409).json({ error: 'Referenced record no longer exists' });
     if (error instanceof HttpError) return res.status(error.status).json({ error: error.message });

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createProviderController } from '../controllers/providerController.js';
+import { createBookingController } from '../controllers/bookingController.js';
 import { requireAuth } from '../middleware/auth.js';
 
 export function createProviderRouter(service, authService, bookingService) {
@@ -12,10 +13,11 @@ export function createProviderRouter(service, authService, bookingService) {
   router.get('/:providerId/slots', controller.listSlots);
   router.post('/:providerId/slots', authenticate, controller.createSlot);
   if (bookingService) {
-    router.post('/:providerId/bookings', authenticate, async (req, res, next) => {
-      try { res.status(201).json({ data: await bookingService.create(req.params.providerId, req.auth, req.body) }); }
-      catch (error) { next(error); }
-    });
+    const bookings = createBookingController(bookingService);
+    router.post('/:providerId/bookings', authenticate, bookings.create);
+    router.get('/:providerId/bookings', authenticate, bookings.listProvider);
+    router.patch('/:providerId/bookings/:bookingId/accept', authenticate, bookings.accept);
+    router.patch('/:providerId/bookings/:bookingId/reject', authenticate, bookings.reject);
   }
   router.get('/:providerId/reviews', controller.listReviews);
   router.post('/:providerId/reviews', authenticate, controller.createReview);

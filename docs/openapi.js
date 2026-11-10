@@ -163,13 +163,14 @@ export const openApiSpec = {
         },
       },
       Booking: {
-        type: 'object', required: ['id', 'providerId', 'slotId', 'serviceId', 'customerUserId', 'startsAt', 'endsAt', 'status', 'createdAt'],
+        type: 'object', required: ['id', 'providerId', 'slotId', 'serviceId', 'customerUserId', 'startsAt', 'endsAt', 'status', 'holdExpiresAt', 'createdAt'],
         properties: {
           id: { type: 'string', format: 'uuid' }, providerId: { type: 'string', format: 'uuid' },
           slotId: { type: 'string', format: 'uuid' }, serviceId: { type: 'string', format: 'uuid' },
           customerUserId: { type: 'string', format: 'uuid' },
           startsAt: { type: 'string', format: 'date-time' }, endsAt: { type: 'string', format: 'date-time' },
-          status: { type: 'string', enum: ['confirmed', 'cancelled'] },
+          status: { type: 'string', enum: ['held', 'confirmed', 'rejected', 'cancelled', 'expired'] },
+          holdExpiresAt: { type: 'string', format: 'date-time', nullable: true, description: 'Initial ten-minute hold deadline' },
           createdAt: { type: 'string', format: 'date-time' },
         },
       },
@@ -382,12 +383,21 @@ export const openApiSpec = {
     },
     '/api/providers/{providerId}/bookings': {
       parameters: [providerId],
+      get: {
+        tags: ['Bookings'], summary: 'Provider lists booking requests', security: [{ bearerAuth: [] }],
+        description: 'Only the listing owner can view these requests. Expired holds appear as expired.',
+        responses: {
+          200: { description: 'Up to 100 bookings', content: json(dataList('Booking')) },
+          400: error('Invalid provider ID'), 401: error('Access token required'),
+          403: error('Not the provider owner'), 404: error('Provider not found'),
+        },
+      },
       post: {
-        tags: ['Bookings'], summary: 'Book a provider time', security: [{ bearerAuth: [] }],
-        description: 'Customers choose a start within an available provider slot. End is computed from the service duration. Overlapping confirmed bookings return 409.',
+        tags: ['Bookings'], summary: 'Hold a provider time for ten minutes', security: [{ bearerAuth: [] }],
+        description: 'Customers choose a start within an available provider slot. End is computed from the service duration. The provider accepts or rejects the request before its ten-minute hold expires. Overlapping confirmed bookings or active holds return 409.',
         requestBody: { required: true, content: json({ $ref: '#/components/schemas/CreateBooking' }) },
         responses: {
-          201: { description: 'Confirmed booking', content: json(data('Booking')) },
+          201: { description: 'Booking hold created', content: json(data('Booking')) },
           400: error('Invalid input'), 401: error('Access token required'), 403: error('Only customers can book'),
           404: error('Service not found'), 409: error('Outside availability or overlapping booking'),
         },
@@ -399,6 +409,30 @@ export const openApiSpec = {
         responses: {
           200: { description: 'Up to 100 bookings', content: json(dataList('Booking')) },
           401: error('Access token required'), 403: error('Only customers can view bookings'),
+        },
+      },
+    },
+    '/api/providers/{providerId}/bookings/{bookingId}/accept': {
+      parameters: [providerId, { name: 'bookingId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+      patch: {
+        tags: ['Bookings'], summary: 'Provider accepts an active hold', security: [{ bearerAuth: [] }],
+        description: 'Only the listing owner can accept before holdExpiresAt; acceptance confirms the booking.',
+        responses: {
+          200: { description: 'Confirmed booking', content: json(data('Booking')) },
+          400: error('Invalid ID'), 401: error('Access token required'), 403: error('Not the provider owner'),
+          404: error('Provider or booking not found'), 409: error('Hold expired or already decided'),
+        },
+      },
+    },
+    '/api/providers/{providerId}/bookings/{bookingId}/reject': {
+      parameters: [providerId, { name: 'bookingId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+      patch: {
+        tags: ['Bookings'], summary: 'Provider rejects an active hold', security: [{ bearerAuth: [] }],
+        description: 'Only the listing owner can reject before holdExpiresAt; the time becomes available immediately.',
+        responses: {
+          200: { description: 'Rejected booking', content: json(data('Booking')) },
+          400: error('Invalid ID'), 401: error('Access token required'), 403: error('Not the provider owner'),
+          404: error('Provider or booking not found'), 409: error('Hold expired or already decided'),
         },
       },
     },
