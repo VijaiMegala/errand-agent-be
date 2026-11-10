@@ -17,6 +17,8 @@ This document describes the implementation in the `frontend`, `backend`, and `db
 | Tool service | Authenticated MCP proxy, MCP Toolbox, Node booking engine | Exposes provider search and booking tools. Its proxy validates the customer token with the backend and binds the customer ID to tool calls. The Toolbox and booking engine use the same PostgreSQL database as Express. |
 | System of record | PostgreSQL, `pg` pool, `pg_trgm` | Users, provider listings, services, availability, bookings, agent sessions and approvals, notification outbox and inbox. SQL triggers and guards enforce booking transitions and overlap rules. `pg_trgm` supports fuzzy area search. |
 | Async delivery | BullMQ worker and Redis | Worker polls PostgreSQL outbox, queues delivery jobs in Redis, writes in-app notifications to PostgreSQL, and publishes live signals. API instances subscribe to Redis Pub/Sub for WebSocket delivery. |
+| Observability | Mastra observability, LibSQL, LangSmith | Captures live agent, model, tool, and application spans, redacts sensitive fields, stores trace data locally, and exports sanitized spans to a LangSmith project when configured. |
+| Evaluation | Local scripted runner and LangSmith experiments | Runs synthetic agent scenarios locally, writes reports and traces under `evals/results/`, and uploads scored results to a LangSmith experiment when `npm run eval` is used. |
 
 ## Why these technologies
 
@@ -28,6 +30,7 @@ This document describes the implementation in the `frontend`, `backend`, and `db
 | Mastra | Provides the agent, tool, model, and streaming primitives needed for the errand assistant. The implementation also uses it for conversation summarization and action narration. |
 | MCP Toolbox | Defines database-backed search tools and booking tool endpoints through MCP. The separate authenticated proxy validates tokens, scopes customer calls, and keeps the internal Toolbox endpoint private. |
 | PostgreSQL | A single broadly supported database holds transactional booking data, agent state, and notification records, keeping the deployment straightforward. SQL constraints and triggers protect booking correctness; `pg_trgm` enables typo-tolerant area search. The current search does not use pgvector. |
+| LangSmith | Provides a place to inspect live agent traces and scored evaluation runs for debugging and reviewing behavior. Sensitive fields are redacted before live trace export; the evaluation upload sends scored synthetic rows. |
 
 ## Connections
 
@@ -36,6 +39,8 @@ This document describes the implementation in the `frontend`, `backend`, and `db
 3. For customer chat, Express runs the Mastra agent. The agent calls the configured LLM and scoped tools. Tool calls go to the authenticated MCP endpoint; MCP checks the token through Express `/api/auth/introspect` and queries or updates the same PostgreSQL data.
 4. Booking requests and provider decisions create an outbox event in the same database transaction. The separate worker polls the outbox, adds BullMQ jobs to Redis, and saves each recipient's notification in PostgreSQL. Redis Pub/Sub carries live signals to the API WebSocket handler.
 5. The current Next.js notification bell polls `GET /api/notifications` about every 20 seconds and on focus. Express also offers `/api/notifications/ws` for direct, authenticated WebSocket clients; the current frontend does not use that socket.
+6. The backend's agent service creates a trace for each chat or approval run. Mastra captures model and tool spans, while application spans record state changes and direct MCP calls. The observability processor redacts sensitive content, uses a local LibSQL trace store, and exports the sanitized spans to LangSmith when tracing is enabled.
+7. The separate evaluation command runs synthetic scenarios locally and saves Markdown and JSON artifacts. `npm run eval` uploads their scored results as a LangSmith experiment; `npm run eval:offline` keeps the run local. The evaluation upload is separate from live trace export.
 
 ## Main booking sequence
 
@@ -47,15 +52,35 @@ This document describes the implementation in the `frontend`, `backend`, and `db
 
 ## Deployment and boundaries
 
-Run the frontend, Express API, notification worker, and MCP service as separate processes. They share PostgreSQL; the API and worker also use Redis. The MCP service's internal Toolbox and booking engine listen on loopback, behind its authenticated proxy. In local development the backend defaults to port `8000` and MCP to `127.0.0.1:5002/mcp`.
+Run the frontend, Express API, notification worker, and MCP service as separate processes. They share PostgreSQL; the API and worker also use Redis. The MCP service's internal Toolbox and booking engine listen on loopback, behind its authenticated proxy. In local development the backend defaults to port `8000` and MCP to `127.0.0.1:5002/mcp`. Live tracing uses a local `.mastra-tracing.db` file in the backend working directory and exports to the configured LangSmith endpoint.
 
 The diagram shows application components present in the repository. CDN, load balancer, sharding, replicas, and backup infrastructure from the reference image are deployment options, but are not specified by this implementation.
+
+## Observability and evaluation
+
+Live trace export requires `LANGSMITH_TRACING=true` and a nonempty `LANGSMITH_API_KEY`. `LANGSMITH_ENDPOINT` defaults to `https://api.smith.langchain.com`; `LANGCHAIN_PROJECT` defaults to `service-booking-agent`, and `LANGSMITH_AGENT_ENVIRONMENT` defaults to `local`. Live trace export is disabled during Node tests and offline evaluations. The processor redacts raw prompts, completions, account identifiers, slot tokens, reviews, and contact details before export. Timing and model token or cost metrics are included when reported.
+
+`npm run eval` executes 33 locally scripted scenarios, generates the [evaluation table](../evals/results/latest.md) and [per-scenario traces](../evals/results/traces.json) from actual assertions, then uploads scored results to a LangSmith experiment. It requires `LANGSMITH_API_KEY` but does not require live tracing to be enabled. The scenarios do not call a live model or mutate live bookings. The [coverage matrix](../evals/README.md) distinguishes implemented checks from remaining assignment cases. Dataset and experiment IDs are recorded in [langsmith-upload.json](../evals/results/langsmith-upload.json); `npm run eval:offline` skips the upload.
+
+One synthetic [raw trace](../evals/results/example-trace.json) from a customer booking request has this sequence:
+
+| Step | Observed result |
+| --- | --- |
+| `session_claimed` | Customer approval run started. |
+| `tools_discovered` | Scoped MCP tools available. |
+| `approval_consumed` | Booking proposal submitted. |
+| `get_booking_status` | Held booking verified; identifiers redacted. |
+| `action_outcome` | `request_sent`; provider acceptance still required. |
+| `finished` | Run ended without customer confirmation of the booking. |
+
+The linked JSON contains the generated trace events and tool latency. A live LangSmith trace uses the same application state names and adds Mastra model spans when the agent invokes a model.
 
 ## Implementation references
 
 - Frontend proxy: `../frontend/app/api/[...path]/route.ts`
 - API entry point and WebSocket attachment: `app.js`, `realtime/notificationSocket.js`
 - Agent and MCP client: `services/agentService.js`, `mcp/assignmentClient.js`
+- Live tracing and evaluation upload: `observability/langsmith.js`, `evals/run-and-upload.js`, `evals/upload-langsmith.js`
 - MCP proxy and tools: `../db-mcp/authProxy.mjs`, `../db-mcp/db-mcp.yaml`
 - Notification worker: `jobs/notificationWorker.js`
-- Database schema and guards: `migration/002_create_provider_tables.sql`, `migration/003_create_provider_guards.sql`, `migration/004_create_bookings.sql`, `migration/005_create_notifications.sql`, `migration/006_create_agent_sessions.sql`, `migration/007_create_mcp_booking_operations.sql`, `migration/008_create_booking_requests.sql`, `migration/009_create_reschedule_requests.sql`
+- Database schema and guards: `migration/001_create_users.sql` through `migration/009_create_reschedule_requests.sql`

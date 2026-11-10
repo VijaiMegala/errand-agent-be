@@ -1,0 +1,53 @@
+{
+  "scenario": "customer submits booking request",
+  "capturedAt": "2026-11-10T14:57:09.622Z",
+  "spans": [
+    {
+      "state": "session_claimed",
+      "details": {
+        "mode": "approval"
+      }
+    },
+    {
+      "state": "tools_discovered",
+      "details": {}
+    },
+    {
+      "state": "approval_consumed",
+      "details": {
+        "kind": "book"
+      }
+    },
+    {
+      "state": "tool_call",
+      "name": "get_booking_status",
+      "arguments": {
+        "hold_id": "[REDACTED]"
+      },
+      "result": {
+        "booking_id": "[REDACTED]",
+        "provider_id": "[REDACTED]",
+        "service": "Plumbing",
+        "slot": "[REDACTED]",
+        "starts_at": "2026-11-13T05:30:00.000Z",
+        "status": "held",
+        "quoted_price": 1200
+      },
+      "latencyMs": 0
+    },
+    {
+      "state": "action_outcome",
+      "details": {
+        "kind": "book",
+        "status": "request_sent"
+      }
+    },
+    {
+      "state": "finished",
+      "details": {
+        "status": "request_sent",
+        "kind": "book"
+      }
+    }
+  ]
+}

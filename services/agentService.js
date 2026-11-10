@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { createAssignmentMcpClient } from '../mcp/assignmentClient.js';
 import { createAssignmentTools } from '../mcp/assignmentTools.js';
 import { createAgentSessionRepository } from '../models/agentSessionModel.js';
+import { createAgentTrace } from '../observability/langsmith.js';
 import { HttpError } from '../utils/httpError.js';
 
 const CONTEXT_WINDOW = 10;
@@ -58,17 +59,19 @@ reveal internal identifiers such as hold IDs or idempotency keys.`,
   });
 }
 
-async function compactContext(repository, sessionId, summarizer, signal) {
+async function compactContext(repository, sessionId, summarizer, signal, trace) {
   const context = await repository.loadContext(sessionId);
   if (!context) throw new HttpError(404, 'Session not found');
   if (context.messages.length <= CONTEXT_WINDOW) return context;
 
   const overflow = context.messages.slice(0, -CONTEXT_WINDOW);
   const transcript = overflow.map(({ role, content }) => ({ role, content }));
+  trace?.register(summarizer);
+  trace?.event('context_compaction', { messageCount: overflow.length });
   const result = await summarizer.generate([{
     role: 'user',
     content: JSON.stringify({ previousSummary: context.summary, transcript }),
-  }], { maxSteps: 1, abortSignal: signal });
+  }], { maxSteps: 1, abortSignal: signal, tracingContext: trace?.context });
   const summary = result.text?.trim().slice(0, 4000);
   if (!summary) throw new Error('Conversation summarization failed');
   await repository.saveSummary(sessionId, summary, overflow.at(-1).seq);
@@ -115,10 +118,11 @@ function actionOutcome(kind, status, details, result = {}) {
   };
 }
 
-async function narrateAction(narrator, outcome, signal) {
+async function narrateAction(narrator, outcome, signal, trace) {
+  trace?.register(narrator);
   const result = await narrator.generate([
     { role: 'user', content: JSON.stringify(outcome) },
-  ], { maxSteps: 1, abortSignal: signal });
+  ], { maxSteps: 1, abortSignal: signal, tracingContext: trace?.context });
   const reply = result.text?.trim();
   if (!reply) throw new Error('Action response generation failed');
   return reply;
@@ -137,7 +141,8 @@ async function executeApproved(approval, assignment, repository, mayWrite = true
       return actionOutcome('book', 'confirmed', details, result);
     }
     if (result.status !== 'held') return actionOutcome('book',
-      result.status === 'confirmed' && !result.booking_id ? 'outcome_unknown' : result.status,
+      result.status === 'expired' ? 'hold_expired'
+        : result.status === 'confirmed' && !result.booking_id ? 'outcome_unknown' : result.status,
       details, result);
     if (!mayWrite) return actionOutcome('book', 'approval_too_old', details);
     if (result.booking_id !== details.holdId || result.provider_id !== details.providerId ||
@@ -215,6 +220,7 @@ export function createAgentService({
   agentFactory = createErrandAgent,
   summarizerFactory = createSummarizer,
   actionNarratorFactory = createActionNarrator,
+  traceFactory = createAgentTrace,
 } = {}) {
   return {
     async listSessions(user, query = {}) {
@@ -266,7 +272,10 @@ export function createAgentService({
         ? AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)])
         : AbortSignal.timeout(REQUEST_TIMEOUT_MS);
       let mcp;
+      let trace;
       try {
+        trace = traceFactory({ mode: approval ? 'approval' : 'chat' });
+        trace.event('session_claimed', { mode: approval ? 'approval' : 'chat' });
         await emit({ type: 'session', sessionId: session.id });
         if (message) {
           await repository.supersedeApprovals(session.id, user.id);
@@ -275,10 +284,18 @@ export function createAgentService({
         mcp = mcpClientFactory({ url: config.mcpUrl, accessToken });
         let assignment;
         let toolsUnavailable = false;
-        try { assignment = await assignmentFactory(mcp); }
+        try {
+          const discovered = await assignmentFactory(mcp);
+          assignment = {
+            ...discovered,
+            call: (name, args) => trace.call(name, args, () => discovered.call(name, args)),
+          };
+          trace.event('tools_discovered');
+        }
         catch (error) {
           if (approval) throw error;
           toolsUnavailable = true;
+          trace.event('tools_unavailable');
           assignment = {
             call: async () => {
               const unavailable = new Error('Assignment MCP unavailable');
@@ -299,6 +316,7 @@ export function createAgentService({
             ? await repository.consumeApproval(approval.id, session.id, user.id)
             : saved;
           if (!action) throw new HttpError(409, 'Approval no longer available');
+          trace.event('approval_consumed', { kind: action.kind });
           if (saved.status === 'pending') {
             await repository.appendMessage(session.id, 'user', action.kind === 'cancel'
               ? `Confirmed cancellation proposal ${action.id}.`
@@ -307,25 +325,30 @@ export function createAgentService({
           const mayWrite = saved.status === 'pending' ||
             new Date(saved.consumedAt).getTime() > Date.now() - 10 * 60_000;
           const outcome = await executeApproved(action, assignment, repository, mayWrite);
+          trace.event('action_outcome', { kind: action.kind, status: outcome.status });
           await emit({ type: 'action_outcome', approvalId: action.id, action: action.kind, status: outcome.status });
           const reply = outcome.action === 'book' && outcome.status === 'request_sent'
             ? `Booking request sent to ${outcome.providerName || 'the provider'}. It is awaiting provider acceptance; no booking is confirmed yet.`
             : outcome.action === 'reschedule' && outcome.status === 'request_sent'
               ? 'Reschedule request sent to the provider. The current booking stays at its original time until the provider accepts the new time.'
-            : await narrateAction(actionNarratorFactory(), outcome, requestSignal);
+            : await narrateAction(actionNarratorFactory(), outcome, requestSignal, trace);
           await repository.appendMessage(session.id, 'assistant', reply);
           await emit({ type: 'delta', text: reply });
+          trace.end({ status: outcome.status, kind: action.kind });
           return { sessionId: session.id };
         }
 
-        const context = await compactContext(repository, session.id, summarizerFactory(), requestSignal);
+        const context = await compactContext(repository, session.id, summarizerFactory(), requestSignal, trace);
         const tools = createErrandTools({
           assignment, repository, sessionId: session.id, user, onApproval: emit,
         });
         const agent = agentFactory({ tools });
+        trace.register(agent);
+        trace.event('model_started', { model: config.llm.name ?? 'configured' });
         const output = await agent.stream(modelMessages(context, toolsUnavailable), {
           maxSteps: MAX_MODEL_STEPS,
           abortSignal: requestSignal,
+          tracingContext: trace.context,
         });
         let streamed = '';
         for await (const part of output.textStream) {
@@ -336,12 +359,22 @@ export function createAgentService({
         const reply = (await output.text)?.trim() || streamed.trim() || 'I could not complete that request. Please try again.';
         if (!streamed && reply) await emit({ type: 'delta', text: reply });
         await repository.appendMessage(session.id, 'assistant', reply);
+        let usage = null;
+        try { if (output.totalUsage) usage = await output.totalUsage; }
+        catch { /* A model may not report usage. */ }
+        trace.event('model_completed', { usage });
+        trace.end({ status: 'completed', usage });
         return { sessionId: session.id };
+      } catch (error) {
+        trace?.error(error);
+        throw error;
       } finally {
         try { if (mcp) await mcp.disconnect(); }
         catch (error) { console.error('MCP cleanup failed:', error.message); }
         try { await repository.release(session.id, lease); }
         catch (error) { console.error('Agent session cleanup failed:', error.message); }
+        try { if (trace) await trace.close(); }
+        catch (error) { console.error('Agent trace flush failed:', error.message); }
       }
     },
   };

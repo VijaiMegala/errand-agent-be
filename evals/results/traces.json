@@ -1,0 +1,1441 @@
+{
+  "startedAt": "2026-11-10T14:57:09.610Z",
+  "traces": [
+    {
+      "scenario": "missing booking date",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "chat"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "model_started",
+          "details": {
+            "model": "claude-sonnet-5"
+          }
+        },
+        {
+          "state": "model_call",
+          "input": "[REDACTED]",
+          "tokenUsage": {
+            "inputTokens": 8,
+            "outputTokens": 6
+          },
+          "estimatedCost": null
+        },
+        {
+          "state": "model_completed",
+          "details": {
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "completed",
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "latest correction preserved",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "chat"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "model_started",
+          "details": {
+            "model": "claude-sonnet-5"
+          }
+        },
+        {
+          "state": "model_call",
+          "input": "[REDACTED]",
+          "tokenUsage": {
+            "inputTokens": 8,
+            "outputTokens": 6
+          },
+          "estimatedCost": null
+        },
+        {
+          "state": "model_completed",
+          "details": {
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "completed",
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "context compaction after ten messages",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "chat"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "context_compaction",
+          "details": {
+            "messageCount": "[REDACTED]"
+          }
+        },
+        {
+          "state": "model_started",
+          "details": {
+            "model": "claude-sonnet-5"
+          }
+        },
+        {
+          "state": "model_call",
+          "input": "[REDACTED]",
+          "tokenUsage": {
+            "inputTokens": 8,
+            "outputTokens": 6
+          },
+          "estimatedCost": null
+        },
+        {
+          "state": "model_completed",
+          "details": {
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "completed",
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "fifty facts fit the recent-message window",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "chat"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "context_compaction",
+          "details": {
+            "messageCount": "[REDACTED]"
+          }
+        },
+        {
+          "state": "model_started",
+          "details": {
+            "model": "claude-sonnet-5"
+          }
+        },
+        {
+          "state": "model_call",
+          "input": "[REDACTED]",
+          "tokenUsage": {
+            "inputTokens": 8,
+            "outputTokens": 6
+          },
+          "estimatedCost": null
+        },
+        {
+          "state": "model_completed",
+          "details": {
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "completed",
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "MCP discovery failure is disclosed",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "chat"
+          }
+        },
+        {
+          "state": "tools_unavailable",
+          "details": {}
+        },
+        {
+          "state": "model_started",
+          "details": {
+            "model": "claude-sonnet-5"
+          }
+        },
+        {
+          "state": "model_call",
+          "input": "[REDACTED]",
+          "tokenUsage": {
+            "inputTokens": 8,
+            "outputTokens": 6
+          },
+          "estimatedCost": null
+        },
+        {
+          "state": "model_completed",
+          "details": {
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "completed",
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "plumber normalized to plumbing",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "search_providers",
+          "arguments": {
+            "service": "plumbing",
+            "area": "Indiranagar",
+            "date_range": "2026-11-13/2026-11-13",
+            "preferred_time": "11:00"
+          },
+          "result": [],
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "scenario": "area spelling passed to fuzzy search",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "search_providers",
+          "arguments": {
+            "service": "plumbing",
+            "area": "Indiranage",
+            "date_range": "2026-11-13/2026-11-13",
+            "preferred_time": "11:00"
+          },
+          "result": [],
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "scenario": "preferred time retained",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "search_providers",
+          "arguments": {
+            "service": "plumbing",
+            "area": "Indiranagar",
+            "date_range": "2026-11-13/2026-11-13",
+            "preferred_time": "11:00"
+          },
+          "result": [],
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "scenario": "tool call budget enforced",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "search_providers",
+          "arguments": {
+            "service": "plumbing",
+            "area": "Indiranagar",
+            "date_range": "2026-11-13/2026-11-13",
+            "preferred_time": "11:00"
+          },
+          "result": [],
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "scenario": "search tool failure has no booking side effect",
+      "events": [
+        {
+          "state": "tool_error",
+          "name": "search_providers",
+          "code": "tool_unavailable"
+        }
+      ]
+    },
+    {
+      "scenario": "slot conflict creates no approval",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "search_providers",
+          "arguments": {
+            "service": "plumbing",
+            "area": "Indiranagar",
+            "date_range": "2026-11-13/2026-11-13",
+            "preferred_time": "11:00"
+          },
+          "result": [
+            {
+              "provider_id": "[REDACTED]",
+              "name": "[REDACTED]",
+              "service": "Plumbing",
+              "area": "Indiranagar",
+              "price": 1200,
+              "rating": 4.5,
+              "available_slots": "[REDACTED]"
+            }
+          ],
+          "latencyMs": 0
+        },
+        {
+          "state": "tool_error",
+          "name": "hold_slot",
+          "code": "slot_taken"
+        }
+      ]
+    },
+    {
+      "scenario": "unadvertised slot cannot be held",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "search_providers",
+          "arguments": {
+            "service": "plumbing",
+            "area": "Indiranagar",
+            "date_range": "2026-11-13/2026-11-13",
+            "preferred_time": "11:00"
+          },
+          "result": [
+            {
+              "provider_id": "[REDACTED]",
+              "name": "[REDACTED]",
+              "service": "Plumbing",
+              "area": "Indiranagar",
+              "price": 1200,
+              "rating": 4.5,
+              "available_slots": "[REDACTED]"
+            }
+          ],
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "scenario": "advertised slot creates approval only",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "search_providers",
+          "arguments": {
+            "service": "plumbing",
+            "area": "Indiranagar",
+            "date_range": "2026-11-13/2026-11-13",
+            "preferred_time": "11:00"
+          },
+          "result": [
+            {
+              "provider_id": "[REDACTED]",
+              "name": "[REDACTED]",
+              "service": "Plumbing",
+              "area": "Indiranagar",
+              "price": 1200,
+              "rating": 4.5,
+              "available_slots": "[REDACTED]"
+            }
+          ],
+          "latencyMs": 0
+        },
+        {
+          "state": "tool_call",
+          "name": "hold_slot",
+          "arguments": {
+            "provider_id": "[REDACTED]",
+            "slot": "[REDACTED]"
+          },
+          "result": {
+            "hold_id": "[REDACTED]",
+            "quoted_price": 1200,
+            "expires_at": "2026-11-10T14:58:09.621Z"
+          },
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "scenario": "prompt injected review remains data",
+      "events": [
+        {
+          "state": "tool_call",
+          "name": "get_provider",
+          "arguments": {
+            "provider_id": "[REDACTED]"
+          },
+          "result": {
+            "provider_id": "[REDACTED]",
+            "name": "[REDACTED]",
+            "service": "Plumbing",
+            "area": "Indiranagar",
+            "price": 1200,
+            "rating": 4.5,
+            "available_slots": "[REDACTED]",
+            "reviews": "[REDACTED]"
+          },
+          "latencyMs": 0
+        }
+      ]
+    },
+    {
+      "scenario": "customer submits booking request",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "request_sent"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "request_sent",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "customer approval never calls MCP book",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "request_sent"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "request_sent",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "plain chat instruction cannot submit booking",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "chat"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "model_started",
+          "details": {
+            "model": "claude-sonnet-5"
+          }
+        },
+        {
+          "state": "model_call",
+          "input": "[REDACTED]",
+          "tokenUsage": {
+            "inputTokens": 8,
+            "outputTokens": 6
+          },
+          "estimatedCost": null
+        },
+        {
+          "state": "model_completed",
+          "details": {
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "completed",
+            "usage": {
+              "inputTokens": 8,
+              "outputTokens": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "unknown approval cannot submit booking",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "failed",
+          "error": "Error"
+        }
+      ]
+    },
+    {
+      "scenario": "unconfirmed approval cannot submit booking",
+      "events": []
+    },
+    {
+      "scenario": "expired approval cannot submit booking",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "failed",
+          "error": "Error"
+        }
+      ]
+    },
+    {
+      "scenario": "repeated confirmation is idempotent",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "request_sent"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "request_sent",
+            "kind": "book"
+          }
+        },
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "request_sent"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "request_sent",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "restart before approval preserves pending proposal",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "request_sent"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "request_sent",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "provider confirmed booking is reported",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "confirmed",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "confirmed"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "confirmed",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "expired hold is not submitted",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "expired",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "hold_expired"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "hold_expired",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "changed quote blocks submission",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1500
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "details_changed"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "details_changed",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "changed slot after approval blocks submission",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "details_changed"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "details_changed",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "unverified booking status blocks submission",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_error",
+          "name": "get_booking_status",
+          "code": "error"
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "status_unverified"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "status_unverified",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "timeout after possible request commit recovers on retry",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "status_unverified"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "status_unverified",
+            "kind": "book"
+          }
+        },
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "request_sent"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "request_sent",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "failed hold submission is not confirmation",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "book"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "get_booking_status",
+          "arguments": {
+            "hold_id": "[REDACTED]"
+          },
+          "result": {
+            "booking_id": "[REDACTED]",
+            "provider_id": "[REDACTED]",
+            "service": "Plumbing",
+            "slot": "[REDACTED]",
+            "starts_at": "2026-11-13T05:30:00.000Z",
+            "status": "held",
+            "quoted_price": 1200
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "book",
+            "status": "hold_expired"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "hold_expired",
+            "kind": "book"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "reschedule stays provider pending",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "reschedule"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "list_bookings",
+          "arguments": {
+            "user_id": "[REDACTED]"
+          },
+          "result": [
+            {
+              "booking_id": "[REDACTED]",
+              "provider_id": "[REDACTED]",
+              "service": "Plumbing",
+              "slot": "[REDACTED]",
+              "starts_at": "2026-11-13T05:30:00.000Z",
+              "status": "confirmed",
+              "quoted_price": 1200
+            }
+          ],
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "reschedule",
+            "status": "request_sent"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "request_sent",
+            "kind": "reschedule"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "reschedule conflict preserves booking",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "reschedule"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "list_bookings",
+          "arguments": {
+            "user_id": "[REDACTED]"
+          },
+          "result": [
+            {
+              "booking_id": "[REDACTED]",
+              "provider_id": "[REDACTED]",
+              "service": "Plumbing",
+              "slot": "[REDACTED]",
+              "starts_at": "2026-11-13T05:30:00.000Z",
+              "status": "confirmed",
+              "quoted_price": 1200
+            }
+          ],
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "reschedule",
+            "status": "slot_conflict"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "slot_conflict",
+            "kind": "reschedule"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "cancellation retries transient 503",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "cancel"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "list_bookings",
+          "arguments": {
+            "user_id": "[REDACTED]"
+          },
+          "result": [
+            {
+              "booking_id": "[REDACTED]",
+              "provider_id": "[REDACTED]",
+              "service": "Plumbing",
+              "slot": "[REDACTED]",
+              "starts_at": "2026-11-13T05:30:00.000Z",
+              "status": "confirmed",
+              "quoted_price": 1200
+            }
+          ],
+          "latencyMs": 0
+        },
+        {
+          "state": "tool_error",
+          "name": "cancel",
+          "code": "transient_error"
+        },
+        {
+          "state": "tool_call",
+          "name": "cancel",
+          "arguments": {
+            "booking_id": "[REDACTED]",
+            "idempotency_key": "[REDACTED]"
+          },
+          "result": {
+            "status": "cancelled"
+          },
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "cancel",
+            "status": "cancelled"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "cancelled",
+            "kind": "cancel"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "changed cancellation details block write",
+      "events": [
+        {
+          "state": "session_claimed",
+          "details": {
+            "mode": "approval"
+          }
+        },
+        {
+          "state": "tools_discovered",
+          "details": {}
+        },
+        {
+          "state": "approval_consumed",
+          "details": {
+            "kind": "cancel"
+          }
+        },
+        {
+          "state": "tool_call",
+          "name": "list_bookings",
+          "arguments": {
+            "user_id": "[REDACTED]"
+          },
+          "result": [
+            {
+              "booking_id": "[REDACTED]",
+              "provider_id": "[REDACTED]",
+              "service": "Plumbing",
+              "slot": "[REDACTED]",
+              "starts_at": "2026-11-13T05:30:00.000Z",
+              "status": "confirmed",
+              "quoted_price": 1500
+            }
+          ],
+          "latencyMs": 0
+        },
+        {
+          "state": "action_outcome",
+          "details": {
+            "kind": "cancel",
+            "status": "details_changed"
+          }
+        },
+        {
+          "state": "finished",
+          "details": {
+            "status": "details_changed",
+            "kind": "cancel"
+          }
+        }
+      ]
+    }
+  ]
+}

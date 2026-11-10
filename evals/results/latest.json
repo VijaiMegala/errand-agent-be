@@ -1,0 +1,344 @@
+{
+  "startedAt": "2026-11-10T14:57:09.610Z",
+  "completedAt": "2026-11-10T14:57:09.622Z",
+  "results": [
+    {
+      "scenario": "missing booking date",
+      "expected": "Please specify a date.",
+      "actual": "Please specify a date.",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.610Z",
+      "completedAt": "2026-11-10T14:57:09.618Z",
+      "latencyMs": 8
+    },
+    {
+      "scenario": "latest correction preserved",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.618Z",
+      "completedAt": "2026-11-10T14:57:09.618Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "context compaction after ten messages",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.618Z",
+      "completedAt": "2026-11-10T14:57:09.618Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "fifty facts fit the recent-message window",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.618Z",
+      "completedAt": "2026-11-10T14:57:09.618Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "MCP discovery failure is disclosed",
+      "expected": "Tools unavailable.",
+      "actual": "Tools unavailable.",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.618Z",
+      "completedAt": "2026-11-10T14:57:09.619Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "plumber normalized to plumbing",
+      "expected": "plumbing",
+      "actual": "plumbing",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.619Z",
+      "completedAt": "2026-11-10T14:57:09.620Z",
+      "latencyMs": 1
+    },
+    {
+      "scenario": "area spelling passed to fuzzy search",
+      "expected": "Indiranage",
+      "actual": "Indiranage",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.620Z",
+      "completedAt": "2026-11-10T14:57:09.620Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "preferred time retained",
+      "expected": "11:00",
+      "actual": "11:00",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.620Z",
+      "completedAt": "2026-11-10T14:57:09.620Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "tool call budget enforced",
+      "expected": "error",
+      "actual": "error",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.620Z",
+      "completedAt": "2026-11-10T14:57:09.620Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "search tool failure has no booking side effect",
+      "expected": "tool_unavailable",
+      "actual": "tool_unavailable",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.620Z",
+      "completedAt": "2026-11-10T14:57:09.620Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "slot conflict creates no approval",
+      "expected": "slot_taken",
+      "actual": "slot_taken",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.620Z",
+      "completedAt": "2026-11-10T14:57:09.620Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "unadvertised slot cannot be held",
+      "expected": "slot_not_advertised",
+      "actual": "slot_not_advertised",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.620Z",
+      "completedAt": "2026-11-10T14:57:09.620Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "advertised slot creates approval only",
+      "expected": "approval_required",
+      "actual": "approval_required",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.620Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "prompt injected review remains data",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "customer submits booking request",
+      "expected": "request_sent",
+      "actual": "request_sent",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "customer approval never calls MCP book",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "plain chat instruction cannot submit booking",
+      "expected": 0,
+      "actual": 0,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "unknown approval cannot submit booking",
+      "expected": 404,
+      "actual": 404,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "unconfirmed approval cannot submit booking",
+      "expected": 400,
+      "actual": 400,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "expired approval cannot submit booking",
+      "expected": 409,
+      "actual": 409,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "repeated confirmation is idempotent",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "restart before approval preserves pending proposal",
+      "expected": "request_sent",
+      "actual": "request_sent",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.621Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "provider confirmed booking is reported",
+      "expected": "confirmed",
+      "actual": "confirmed",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.621Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "expired hold is not submitted",
+      "expected": "hold_expired",
+      "actual": "hold_expired",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "changed quote blocks submission",
+      "expected": "details_changed",
+      "actual": "details_changed",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "changed slot after approval blocks submission",
+      "expected": "details_changed",
+      "actual": "details_changed",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "unverified booking status blocks submission",
+      "expected": "status_unverified",
+      "actual": "status_unverified",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "timeout after possible request commit recovers on retry",
+      "expected": {
+        "first": "status_unverified",
+        "second": "request_sent",
+        "uniqueRequests": 1
+      },
+      "actual": {
+        "first": "status_unverified",
+        "second": "request_sent",
+        "uniqueRequests": 1
+      },
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "failed hold submission is not confirmation",
+      "expected": "hold_expired",
+      "actual": "hold_expired",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "reschedule stays provider pending",
+      "expected": "request_sent",
+      "actual": "request_sent",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "reschedule conflict preserves booking",
+      "expected": "slot_conflict",
+      "actual": "slot_conflict",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "cancellation retries transient 503",
+      "expected": 2,
+      "actual": 2,
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    },
+    {
+      "scenario": "changed cancellation details block write",
+      "expected": "details_changed",
+      "actual": "details_changed",
+      "pass": true,
+      "notes": "",
+      "startedAt": "2026-11-10T14:57:09.622Z",
+      "completedAt": "2026-11-10T14:57:09.622Z",
+      "latencyMs": 0
+    }
+  ]
+}

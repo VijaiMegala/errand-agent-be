@@ -1,11 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="1010" viewBox="0 0 1600 1010" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="1250" viewBox="0 0 1600 1250" role="img" aria-labelledby="title desc">
   <title id="title">Home service booking system architecture</title>
-  <desc id="desc">Browser to Next.js to Express; Express connects to PostgreSQL and Mastra; Mastra connects to an LLM and authenticated MCP service; MCP connects to PostgreSQL and Express token introspection; PostgreSQL outbox feeds a notification worker through Redis and an API WebSocket endpoint.</desc>
+  <desc id="desc">Browser to Next.js to Express; Express connects to PostgreSQL and Mastra; Mastra connects to an LLM and authenticated MCP service; MCP connects to PostgreSQL and Express token introspection; PostgreSQL outbox feeds a notification worker through Redis and an API WebSocket endpoint. The agent service sends sanitized live spans through a local LibSQL-backed exporter to LangSmith. A separate local evaluation runner uploads scored synthetic experiments to LangSmith.</desc>
   <defs>
     <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1325"/><stop offset="1" stop-color="#101b32"/></linearGradient>
     <linearGradient id="card" x2="0" y2="1"><stop stop-color="#1c2a43"/><stop offset="1" stop-color="#162238"/></linearGradient>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a5b4fc"/></marker>
     <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5eead4"/></marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#fbbf24"/></marker>
     <style>
       text { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
       .title { fill:#f8fafc; font-size:37px; font-weight:760; letter-spacing:-.8px; }
@@ -20,13 +21,15 @@
       .edgeBoth { fill:none; stroke:#a5b4fc; stroke-width:3; stroke-linecap:round; marker-start:url(#arrow); marker-end:url(#arrow); }
       .event { fill:none; stroke:#5eead4; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; marker-end:url(#arrowGreen); }
       .eventBoth { fill:none; stroke:#5eead4; stroke-width:3; stroke-linecap:round; marker-start:url(#arrowGreen); marker-end:url(#arrowGreen); }
+      .observe { fill:none; stroke:#fbbf24; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; marker-end:url(#arrowAmber); }
       .optional { stroke-dasharray:9 9; }
       .label { fill:#c9d5ed; font-size:14px; font-weight:600; paint-order:stroke; stroke:#101b32; stroke-width:7px; stroke-linejoin:round; }
       .eventLabel { fill:#82f2df; }
+      .observeLabel { fill:#fcd47c; }
       .foot { fill:#8da1bd; font-size:14px; }
     </style>
   </defs>
-  <rect width="1600" height="1010" fill="url(#bg)"/>
+  <rect width="1600" height="1250" fill="url(#bg)"/>
   <text x="58" y="72" class="title">Home Service Booking · System Architecture</text>
   <text x="60" y="106" class="subtitle">Implementation stack and data flow · November 2026</text>
 
@@ -106,6 +109,27 @@
   <path d="M 184 710 V 865 H 710" class="event"/><text x="335" y="851" class="label eventLabel">Pub/Sub notification signal</text>
   <path d="M 710 875 H 34 V 308 H 60" class="event optional"/><text x="72" y="793" class="label eventLabel">direct WebSocket client (available API)</text>
 
-  <line x1="60" x2="1530" y1="962" y2="962" stroke="#31435e" stroke-width="1"/>
-  <text x="60" y="990" class="foot">Current UI polls the notification inbox via HTTP; the direct WebSocket path is available to clients.</text>
+  <text x="60" y="1020" class="lane">OBSERVABILITY &amp; EVALUATION</text>
+
+  <rect x="60" y="1040" width="340" height="110" class="card"/>
+  <rect x="87" y="1057" width="72" height="27" class="pill"/><text x="99" y="1076" class="pillText">LOCAL</text>
+  <text x="87" y="1114" class="nodeTitle">Evaluation runner</text>
+  <text x="87" y="1139" class="nodeSub">33 scripted scenarios · local reports</text>
+
+  <rect x="710" y="1040" width="360" height="110" class="card"/>
+  <rect x="738" y="1057" width="74" height="27" class="pill"/><text x="751" y="1076" class="pillText">MASTRA</text>
+  <text x="738" y="1114" class="nodeTitle">Trace processing</text>
+  <text x="738" y="1139" class="nodeSub">Redaction · LibSQL · exporter</text>
+
+  <rect x="1170" y="1040" width="360" height="110" class="card"/>
+  <rect x="1198" y="1057" width="95" height="27" class="pill"/><text x="1211" y="1076" class="pillText">EXTERNAL</text>
+  <text x="1198" y="1114" class="nodeTitle">LangSmith</text>
+  <text x="1198" y="1139" class="nodeSub">Live traces · scored experiments</text>
+
+  <path d="M 1530 270 H 1580 V 985 H 890 V 1040" class="observe"/><text x="1130" y="973" class="label observeLabel">agent, model, tool &amp; application spans</text>
+  <path d="M 1070 1094 H 1170" class="observe"/><text x="1090" y="1080" class="label observeLabel">export</text>
+  <path d="M 230 1150 V 1180 H 1350 V 1150" class="observe"/><text x="555" y="1171" class="label observeLabel">scored synthetic experiment upload</text>
+
+  <line x1="60" x2="1530" y1="1200" y2="1200" stroke="#31435e" stroke-width="1"/>
+  <text x="60" y="1228" class="foot">Current UI polls notifications via HTTP. LangSmith export is configured separately from offline evaluation.</text>
 </svg>

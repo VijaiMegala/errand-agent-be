@@ -5,6 +5,9 @@
   "main": "app.js",
   "scripts": {
     "test": "node --test",
+    "eval": "EVAL_OFFLINE=true node evals/run-and-upload.js",
+    "eval:offline": "EVAL_OFFLINE=true node evals/run.js",
+    "eval:upload": "node evals/upload-langsmith.js",
     "start": "node app.js",
     "dev": "nodemon app.js",
     "migrate": "node migration/run.js",
@@ -18,7 +21,10 @@
   "type": "module",
   "dependencies": {
     "@mastra/core": "^1.82.0",
+    "@mastra/langsmith": "^1.4.2",
+    "@mastra/libsql": "^1.29.0",
     "@mastra/mcp": "^2.8.0",
+    "@mastra/observability": "^1.23.1",
     "bullmq": "^6.7.2",
     "express": "^5.3.0",
     "ioredis": "^6.0.0",
