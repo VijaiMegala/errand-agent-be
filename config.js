@@ -25,6 +25,7 @@ export const config = {
   port,
   corsOrigin: process.env.CROSS_ORIGIN || null,
   jwtSecret: process.env.JWT_SECRET,
+  redisUrl: process.env.REDIS_URL || null,
   db: {
     host: dbHost,
     port: dbPort,

@@ -78,6 +78,7 @@ export const openApiSpec = {
     { name: 'Auth', description: 'Password login and access tokens' },
     { name: 'Providers', description: 'Service offerings, available slots, and customer reviews' },
     { name: 'Bookings', description: 'Customer reservations within provider availability' },
+    { name: 'Notifications', description: 'In-app booking notifications delivered through BullMQ' },
   ],
   components: {
     securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } },
@@ -181,6 +182,16 @@ export const openApiSpec = {
           startsAt: { type: 'string', format: 'date-time', description: 'Requested start with time zone; end is calculated from service duration' },
         },
       },
+      Notification: {
+        type: 'object', required: ['id', 'bookingId', 'eventType', 'createdAt', 'readAt'],
+        properties: {
+          id: { type: 'integer', format: 'int64' },
+          bookingId: { type: 'string', format: 'uuid' },
+          eventType: { type: 'string', enum: ['booking_requested', 'booking_confirmed', 'booking_rejected'] },
+          createdAt: { type: 'string', format: 'date-time' },
+          readAt: { type: 'string', format: 'date-time', nullable: true },
+        },
+      },
       ProviderReview: {
         type: 'object', required: ['id', 'providerId', 'rating', 'reviewText', 'createdAt'],
         properties: {
@@ -239,6 +250,35 @@ export const openApiSpec = {
     },
   },
   paths: {
+    '/api/notifications': {
+      get: {
+        tags: ['Notifications'], summary: 'List my notifications', security: [{ bearerAuth: [] }],
+        description: 'Returns the latest 100 notifications for the authenticated user.',
+        responses: { 200: { description: 'Notifications', content: json(dataList('Notification')) }, 401: error('Access token required') },
+      },
+    },
+    '/api/notifications/ws': {
+      get: {
+        tags: ['Notifications'], summary: 'Connect to live notification WebSocket',
+        description: 'Upgrade to WebSocket with Sec-WebSocket-Protocol: bearer, <accessToken>. The selected protocol is bearer. On connection the server sends {"type":"ready"}; new notifications arrive as {"type":"notification","data":Notification}. Reconnect with a fresh token and fetch GET /api/notifications to recover missed events.',
+        responses: {
+          101: { description: 'WebSocket connected' },
+          401: error('Missing or invalid access token'),
+          503: error('Live notification subscription unavailable'),
+        },
+      },
+    },
+    '/api/notifications/{notificationId}/read': {
+      parameters: [{ name: 'notificationId', in: 'path', required: true, schema: { type: 'integer', minimum: 1 } }],
+      patch: {
+        tags: ['Notifications'], summary: 'Mark my notification as read', security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: 'Updated notification', content: json(data('Notification')) },
+          400: error('Invalid notification ID'), 401: error('Access token required'),
+          404: error('Notification not found'),
+        },
+      },
+    },
     '/api/auth/login': {
       post: {
         tags: ['Auth'], summary: 'Log in and receive an access token',

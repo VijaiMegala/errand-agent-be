@@ -36,6 +36,9 @@ The API runs on `http://localhost:8000` by default. Swagger UI is at `http://loc
 | `GET` | `/api/providers/:providerId/bookings` | Provider lists booking requests |
 | `PATCH` | `/api/providers/:providerId/bookings/:bookingId/accept` | Provider accepts an active hold |
 | `PATCH` | `/api/providers/:providerId/bookings/:bookingId/reject` | Provider rejects an active hold |
+| `GET` | `/api/notifications` | List my booking notifications |
+| `PATCH` | `/api/notifications/:notificationId/read` | Mark my notification as read |
+| `GET` | `/api/notifications/ws` | WebSocket stream for my new notifications |
 | `POST` | `/api/providers/:providerId/reviews` | Customer adds a review |
 | `GET` | `/api/providers/:providerId/reviews` | List recent reviews |
 
@@ -66,6 +69,10 @@ The provider ID comes from `providerDetails.id`. A provider owner can create a s
 A customer holds a time within a window using `{ "slotId": "<availability UUID>", "serviceId": "<service UUID>", "startsAt": "2026-12-01T10:30:00+05:30" }` at `POST /api/providers/:providerId/bookings`. The end time follows the service duration. The response has `status: "held"` and `holdExpiresAt` ten minutes later. The provider owner sees the request at `GET /api/providers/:providerId/bookings` and accepts or rejects it before that deadline. Acceptance confirms the booking; rejection frees the time immediately. Customers cannot accept or reject. The database checks that the time fits availability and does not overlap a confirmed booking or unexpired hold, including concurrent requests. A conflict returns HTTP 409. Expired holds stop blocking immediately, and booking lists report them as `expired`. Adjacent bookings are allowed.
 
 If the provider rejects a booking, its customer can call `PATCH /api/bookings/:bookingId/reschedule` with a new `slotId`, `serviceId`, and `startsAt` for the same provider. The booking ID stays the same, its status returns to `held`, and a new ten-minute hold begins. The provider must decide again. Confirmed, held, cancelled, and expired bookings cannot use this route.
+
+Booking creation and rescheduling write a `booking_requested` notification event for the provider. Provider acceptance and rejection write `booking_confirmed` or `booking_rejected` for the customer. The database trigger records each event in `notification_outbox` in the same transaction as the booking change. Run `npm run notifications:worker` as a separate process with `REDIS_URL` configured. It publishes pending events to BullMQ in Redis and saves delivered in-app notifications. Users fetch their own notifications with `GET /api/notifications`; the worker retries failed jobs and delivery is idempotent. The booking hold deadline remains enforced by PostgreSQL, so notification delays do not change booking state.
+
+For live notifications, connect to `ws://localhost:8000/api/notifications/ws` (use `wss://` with HTTPS) with WebSocket subprotocols `['bearer', accessToken]`. The server first sends `{ "type": "ready" }`, then sends `{ "type": "notification", "data": { "id": "...", "bookingId": "...", "eventType": "booking_requested", "createdAt": "...", "readAt": null } }` only to the recipient. A customer receives `booking_confirmed` or `booking_rejected`; the provider receives `booking_requested` for new and rescheduled holds. Reconnect with a fresh access token when the 15-minute token expires, then call `GET /api/notifications` to catch anything missed while offline. Redis Pub/Sub carries live signals between API instances; the PostgreSQL inbox holds the durable history.
 
 Only an authenticated customer can add a review with `{ "rating": 5, "reviewText": "Helpful technician" }`. The reviewer ID is taken from the access token; it is not accepted in the request. Reviews can be read without a token. Reviews are not currently restricted to customers with a completed booking.
 

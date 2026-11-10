@@ -5,12 +5,15 @@ import swaggerUi from 'swagger-ui-express';
 import { config } from './config.js';
 import { openApiSpec } from './docs/openapi.js';
 import { pool } from './models/db.js';
+import { attachNotificationSocket } from './realtime/notificationSocket.js';
 import { createAuthRouter } from './routes/authRoutes.js';
 import { createBookingRouter } from './routes/bookingRoutes.js';
+import { createNotificationRouter } from './routes/notificationRoutes.js';
 import { createProviderRouter } from './routes/providerRoutes.js';
 import { createUserRouter } from './routes/userRoutes.js';
 import { authService as defaultAuthService } from './services/authService.js';
 import { bookingService as defaultBookingService } from './services/bookingService.js';
+import { notificationService as defaultNotificationService } from './services/notificationService.js';
 import { providerService as defaultProviderService } from './services/providerService.js';
 import { userService as defaultUserService } from './services/userService.js';
 import { HttpError } from './utils/httpError.js';
@@ -20,6 +23,7 @@ export function createApp({
   authService = defaultAuthService,
   providerService = defaultProviderService,
   bookingService = defaultBookingService,
+  notificationService = defaultNotificationService,
 } = {}) {
   const app = express();
   app.disable('x-powered-by');
@@ -45,6 +49,7 @@ export function createApp({
   app.use('/api/users', createUserRouter(userService, authService));
   app.use('/api/providers', createProviderRouter(providerService, authService, bookingService));
   app.use('/api/bookings', createBookingRouter(bookingService, authService));
+  app.use('/api/notifications', createNotificationRouter(notificationService, authService));
 
   app.use((req, _res, next) => next(new HttpError(404, 'Route not found')));
   app.use((error, _req, res, _next) => {
@@ -71,14 +76,19 @@ export function createApp({
 
 async function startServer() {
   try {
+    if (!config.redisUrl) throw new Error('REDIS_URL is required for notification WebSockets');
     await pool.query('SELECT 1');
     const server = createApp().listen(config.port, () => {
       console.log(`API: http://localhost:${config.port}`);
       console.log(`Swagger: http://localhost:${config.port}/api/docs`);
     });
+    const closeNotifications = attachNotificationSocket(server, {
+      authService: defaultAuthService, redisUrl: config.redisUrl, corsOrigin: config.corsOrigin,
+    });
 
     for (const signal of ['SIGINT', 'SIGTERM']) {
-      process.on(signal, () => {
+      process.once(signal, async () => {
+        await closeNotifications();
         server.close(() => pool.end().finally(() => process.exit(0)));
       });
     }
