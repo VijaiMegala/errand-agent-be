@@ -281,8 +281,10 @@ const scenarios = [
     const h = harness({ approval: baseApproval, remote: async () => ({ ...baseBooking, status: 'confirmed' }) });
     await h.run(); return h.events.find((e) => e.type === 'action_outcome').status;
   } },
-  { name: 'expired hold is not submitted', expected: 'hold_expired', run: async () => {
-    const h = harness({ approval: baseApproval, remote: async () => ({ ...baseBooking, status: 'expired' }) });
+  { name: 'hold expires during approval and is not submitted', expected: 'hold_expired', run: async () => {
+    const h = harness({ approval: baseApproval,
+      remote: async () => ({ ...baseBooking, status: 'hold_expired',
+        expires_at: new Date(Date.now() - 1_000).toISOString() }) });
     await h.run(); assert.equal(h.submitted.length, 0);
     return h.events.find((e) => e.type === 'action_outcome').status;
   } },
@@ -306,8 +308,13 @@ const scenarios = [
     expected: { first: 'status_unverified', second: 'request_sent', uniqueRequests: 1 },
     run: async () => {
       let attempts = 0;
-      const h = harness({ approval: baseApproval, submitResult: () => {
-        if (++attempts === 1) throw Object.assign(new Error('response lost'), { code: 'timeout' });
+      const h = harness({ approval: baseApproval, submitResult: ({ submitted }) => {
+        if (++attempts === 1) {
+          activeTrace.push({ state: 'request_committed', details: { uniqueRequests: submitted.length } });
+          activeTrace.push({ state: 'response_timeout', details: { code: 'timeout' } });
+          throw Object.assign(new Error('response lost'), { code: 'timeout' });
+        }
+        activeTrace.push({ state: 'idempotent_retry', details: { uniqueRequests: submitted.length } });
         return true;
       } });
       await h.run();
@@ -360,6 +367,7 @@ const startedAt = new Date().toISOString();
 const results = [];
 const traces = [];
 let exampleTrace = null;
+let timeoutTrace = null;
 for (const scenario of scenarios) {
   activeTrace = [];
   const rowStartedAt = new Date().toISOString();
@@ -373,7 +381,12 @@ for (const scenario of scenarios) {
   results.push({ scenario: scenario.name, expected: scenario.expected, actual, pass,
     notes: note, startedAt: rowStartedAt, completedAt: new Date().toISOString(),
     latencyMs: Math.round(performance.now() - start) });
-  traces.push({ scenario: scenario.name, events: activeTrace });
+  const scenarioTrace = { scenario: scenario.name, events: activeTrace };
+  traces.push(scenarioTrace);
+  if (scenario.name === 'timeout after possible request commit recovers on retry') {
+    timeoutTrace = { ...scenarioTrace, capturedAt: new Date().toISOString(),
+      scripted: true, result: actual };
+  }
 }
 activeTrace = null;
 
@@ -400,6 +413,8 @@ await Promise.all([
   writeFile(new URL('./results/latest.json', import.meta.url), JSON.stringify({ startedAt, completedAt: new Date().toISOString(), results }, null, 2) + '\n'),
   writeFile(new URL('./results/traces.json', import.meta.url), JSON.stringify({ startedAt, traces }, null, 2) + '\n'),
   writeFile(new URL('./results/example-trace.json', import.meta.url), JSON.stringify(exampleTrace, null, 2) + '\n'),
+  writeFile(new URL('./results/timeout-after-success-trace.json', import.meta.url),
+    JSON.stringify(timeoutTrace, null, 2) + '\n'),
 ]);
 console.log(`Agent evals: ${results.filter((r) => r.pass).length}/${results.length} passed; see evals/results/latest.md`);
 if (results.some((r) => !r.pass)) process.exitCode = 1;

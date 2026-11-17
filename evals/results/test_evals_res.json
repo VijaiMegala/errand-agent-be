@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-11-10T14:57:09.610Z",
-  "completedAt": "2026-11-10T14:57:09.622Z",
+  "startedAt": "2026-11-10T16:35:28.106Z",
+  "completedAt": "2026-11-10T16:35:28.139Z",
   "results": [
     {
       "scenario": "missing booking date",
@@ -8,9 +8,9 @@
       "actual": "Please specify a date.",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.610Z",
-      "completedAt": "2026-11-10T14:57:09.618Z",
-      "latencyMs": 8
+      "startedAt": "2026-11-10T16:35:28.106Z",
+      "completedAt": "2026-11-10T16:35:28.134Z",
+      "latencyMs": 28
     },
     {
       "scenario": "latest correction preserved",
@@ -18,8 +18,8 @@
       "actual": true,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.618Z",
-      "completedAt": "2026-11-10T14:57:09.618Z",
+      "startedAt": "2026-11-10T16:35:28.134Z",
+      "completedAt": "2026-11-10T16:35:28.134Z",
       "latencyMs": 0
     },
     {
@@ -28,8 +28,8 @@
       "actual": true,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.618Z",
-      "completedAt": "2026-11-10T14:57:09.618Z",
+      "startedAt": "2026-11-10T16:35:28.134Z",
+      "completedAt": "2026-11-10T16:35:28.134Z",
       "latencyMs": 0
     },
     {
@@ -38,8 +38,8 @@
       "actual": true,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.618Z",
-      "completedAt": "2026-11-10T14:57:09.618Z",
+      "startedAt": "2026-11-10T16:35:28.134Z",
+      "completedAt": "2026-11-10T16:35:28.134Z",
       "latencyMs": 0
     },
     {
@@ -48,8 +48,8 @@
       "actual": "Tools unavailable.",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.618Z",
-      "completedAt": "2026-11-10T14:57:09.619Z",
+      "startedAt": "2026-11-10T16:35:28.134Z",
+      "completedAt": "2026-11-10T16:35:28.135Z",
       "latencyMs": 0
     },
     {
@@ -58,8 +58,8 @@
       "actual": "plumbing",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.619Z",
-      "completedAt": "2026-11-10T14:57:09.620Z",
+      "startedAt": "2026-11-10T16:35:28.135Z",
+      "completedAt": "2026-11-10T16:35:28.136Z",
       "latencyMs": 1
     },
     {
@@ -68,8 +68,8 @@
       "actual": "Indiranage",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.620Z",
-      "completedAt": "2026-11-10T14:57:09.620Z",
+      "startedAt": "2026-11-10T16:35:28.136Z",
+      "completedAt": "2026-11-10T16:35:28.136Z",
       "latencyMs": 0
     },
     {
@@ -78,8 +78,8 @@
       "actual": "11:00",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.620Z",
-      "completedAt": "2026-11-10T14:57:09.620Z",
+      "startedAt": "2026-11-10T16:35:28.136Z",
+      "completedAt": "2026-11-10T16:35:28.136Z",
       "latencyMs": 0
     },
     {
@@ -88,8 +88,8 @@
       "actual": "error",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.620Z",
-      "completedAt": "2026-11-10T14:57:09.620Z",
+      "startedAt": "2026-11-10T16:35:28.136Z",
+      "completedAt": "2026-11-10T16:35:28.136Z",
       "latencyMs": 0
     },
     {
@@ -98,8 +98,8 @@
       "actual": "tool_unavailable",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.620Z",
-      "completedAt": "2026-11-10T14:57:09.620Z",
+      "startedAt": "2026-11-10T16:35:28.136Z",
+      "completedAt": "2026-11-10T16:35:28.136Z",
       "latencyMs": 0
     },
     {
@@ -108,8 +108,8 @@
       "actual": "slot_taken",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.620Z",
-      "completedAt": "2026-11-10T14:57:09.620Z",
+      "startedAt": "2026-11-10T16:35:28.136Z",
+      "completedAt": "2026-11-10T16:35:28.136Z",
       "latencyMs": 0
     },
     {
@@ -118,8 +118,8 @@
       "actual": "slot_not_advertised",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.620Z",
-      "completedAt": "2026-11-10T14:57:09.620Z",
+      "startedAt": "2026-11-10T16:35:28.136Z",
+      "completedAt": "2026-11-10T16:35:28.136Z",
       "latencyMs": 0
     },
     {
@@ -128,8 +128,8 @@
       "actual": "approval_required",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.620Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.136Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -138,8 +138,8 @@
       "actual": true,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -148,8 +148,8 @@
       "actual": "request_sent",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -158,8 +158,8 @@
       "actual": false,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -168,8 +168,8 @@
       "actual": 0,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -178,8 +178,8 @@
       "actual": 404,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -188,8 +188,8 @@
       "actual": 400,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -198,8 +198,8 @@
       "actual": 409,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.137Z",
       "latencyMs": 0
     },
     {
@@ -208,8 +208,8 @@
       "actual": true,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.137Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -218,8 +218,8 @@
       "actual": "request_sent",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.621Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -228,18 +228,18 @@
       "actual": "confirmed",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.621Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
-      "scenario": "expired hold is not submitted",
+      "scenario": "hold expires during approval and is not submitted",
       "expected": "hold_expired",
       "actual": "hold_expired",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -248,8 +248,8 @@
       "actual": "details_changed",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -258,8 +258,8 @@
       "actual": "details_changed",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -268,8 +268,8 @@
       "actual": "status_unverified",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -286,8 +286,8 @@
       },
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -296,8 +296,8 @@
       "actual": "hold_expired",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -306,8 +306,8 @@
       "actual": "request_sent",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -316,8 +316,8 @@
       "actual": "slot_conflict",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -326,8 +326,8 @@
       "actual": 2,
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     },
     {
@@ -336,8 +336,8 @@
       "actual": "details_changed",
       "pass": true,
       "notes": "",
-      "startedAt": "2026-11-10T14:57:09.622Z",
-      "completedAt": "2026-11-10T14:57:09.622Z",
+      "startedAt": "2026-11-10T16:35:28.138Z",
+      "completedAt": "2026-11-10T16:35:28.138Z",
       "latencyMs": 0
     }
   ]

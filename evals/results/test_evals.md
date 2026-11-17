@@ -1,6 +1,6 @@
 # Agent evaluation results
 
-Generated: 2026-11-10T14:57:09.622Z
+Generated: 2026-11-10T16:35:28.138Z
 Scenarios: 33; passed: 33
 
 | Scenario | Expected | Actual | Pass/fail | Notes |
@@ -28,7 +28,7 @@ Scenarios: 33; passed: 33
 | repeated confirmation is idempotent | true | true | PASS |  |
 | restart before approval preserves pending proposal | request_sent | request_sent | PASS |  |
 | provider confirmed booking is reported | confirmed | confirmed | PASS |  |
-| expired hold is not submitted | hold_expired | hold_expired | PASS |  |
+| hold expires during approval and is not submitted | hold_expired | hold_expired | PASS |  |
 | changed quote blocks submission | details_changed | details_changed | PASS |  |
 | changed slot after approval blocks submission | details_changed | details_changed | PASS |  |
 | unverified booking status blocks submission | status_unverified | status_unverified | PASS |  |

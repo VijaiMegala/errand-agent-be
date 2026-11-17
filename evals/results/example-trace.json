@@ -1,6 +1,6 @@
 {
   "scenario": "customer submits booking request",
-  "capturedAt": "2026-11-10T14:57:09.622Z",
+  "capturedAt": "2026-11-10T16:35:28.138Z",
   "spans": [
     {
       "state": "session_claimed",

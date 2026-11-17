@@ -6,6 +6,7 @@ Run `npm run eval` from `backend/`. It executes 33 synthetic scenarios with scri
 - `results/latest.json`: machine-readable results and run timestamps.
 - `results/traces.json`: one sanitized state/tool/model event record for each scenario.
 - `results/example-trace.json`: one sanitized, synthetic approval trace with state transitions, tool name, filtered arguments/result, and latency.
+- `results/timeout-after-success-trace.json`: the sanitized, scripted timeout-after-commit and retry trace, with explicit commit, lost-response, and idempotent-retry events.
 
 The process exits nonzero if any scenario fails. Assertions inspect approval records, MCP calls, request submissions, and action outcomes, in addition to replies. Scripted replies verify application paths; they do not score the semantic quality of a live LLM.
 
@@ -18,6 +19,7 @@ The process exits nonzero if any scenario fails. Assertions inspect approval rec
 | Adversarial input | Covered for approval bypass | Plain-chat instruction cannot submit a booking; invalid approval IDs and confirmation flags are rejected. |
 | Prompt injection | Partial | A malicious review is treated as tool data without a write. A live-model attack set is still needed to measure whether the model follows injected text. |
 | Changed price or slot after approval | Covered | Revalidation returns `details_changed` with no request submission. |
+| Hold expiry | Covered for the agent service | An expired approval is rejected before submission; if the hold expires during approval, live MCP status `hold_expired` also prevents submission. Provider acceptance after the original ten-minute hold deadline is rejected by the database, so provider response time is still limited to that window. |
 | Booking timeout after possible success | Partial | A fake repository simulates a committed request whose response was lost, then an idempotent retry after service restart. A real database timeout and recovery trace remain untested. |
 | Slot conflict | Covered for preparation and reschedule | Failed hold creates no approval; failed reschedule preserves the original booking in the fake repository. |
 | Repeated confirmation | Covered | Two approval calls produce one unique request in the fake repository. |

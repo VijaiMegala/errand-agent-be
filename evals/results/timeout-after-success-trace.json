@@ -1,0 +1,124 @@
+{
+  "scenario": "timeout after possible request commit recovers on retry",
+  "events": [
+    {
+      "state": "session_claimed",
+      "details": {
+        "mode": "approval"
+      }
+    },
+    {
+      "state": "tools_discovered",
+      "details": {}
+    },
+    {
+      "state": "approval_consumed",
+      "details": {
+        "kind": "book"
+      }
+    },
+    {
+      "state": "tool_call",
+      "name": "get_booking_status",
+      "arguments": {
+        "hold_id": "[REDACTED]"
+      },
+      "result": {
+        "booking_id": "[REDACTED]",
+        "provider_id": "[REDACTED]",
+        "service": "Plumbing",
+        "slot": "[REDACTED]",
+        "starts_at": "2026-11-13T05:30:00.000Z",
+        "status": "held",
+        "quoted_price": 1200
+      },
+      "latencyMs": 0
+    },
+    {
+      "state": "request_committed",
+      "details": {
+        "uniqueRequests": 1
+      }
+    },
+    {
+      "state": "response_timeout",
+      "details": {
+        "code": "timeout"
+      }
+    },
+    {
+      "state": "action_outcome",
+      "details": {
+        "kind": "book",
+        "status": "status_unverified"
+      }
+    },
+    {
+      "state": "finished",
+      "details": {
+        "status": "status_unverified",
+        "kind": "book"
+      }
+    },
+    {
+      "state": "session_claimed",
+      "details": {
+        "mode": "approval"
+      }
+    },
+    {
+      "state": "tools_discovered",
+      "details": {}
+    },
+    {
+      "state": "approval_consumed",
+      "details": {
+        "kind": "book"
+      }
+    },
+    {
+      "state": "tool_call",
+      "name": "get_booking_status",
+      "arguments": {
+        "hold_id": "[REDACTED]"
+      },
+      "result": {
+        "booking_id": "[REDACTED]",
+        "provider_id": "[REDACTED]",
+        "service": "Plumbing",
+        "slot": "[REDACTED]",
+        "starts_at": "2026-11-13T05:30:00.000Z",
+        "status": "held",
+        "quoted_price": 1200
+      },
+      "latencyMs": 0
+    },
+    {
+      "state": "idempotent_retry",
+      "details": {
+        "uniqueRequests": 1
+      }
+    },
+    {
+      "state": "action_outcome",
+      "details": {
+        "kind": "book",
+        "status": "request_sent"
+      }
+    },
+    {
+      "state": "finished",
+      "details": {
+        "status": "request_sent",
+        "kind": "book"
+      }
+    }
+  ],
+  "capturedAt": "2026-11-10T16:35:28.138Z",
+  "scripted": true,
+  "result": {
+    "first": "status_unverified",
+    "second": "request_sent",
+    "uniqueRequests": 1
+  }
+}

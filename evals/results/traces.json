@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-11-10T14:57:09.610Z",
+  "startedAt": "2026-11-10T16:35:28.106Z",
   "traces": [
     {
       "scenario": "missing booking date",
@@ -430,7 +430,7 @@
           "result": {
             "hold_id": "[REDACTED]",
             "quoted_price": 1200,
-            "expires_at": "2026-11-10T14:58:09.621Z"
+            "expires_at": "2026-11-10T16:36:28.136Z"
           },
           "latencyMs": 0
         }
@@ -858,7 +858,7 @@
       ]
     },
     {
-      "scenario": "expired hold is not submitted",
+      "scenario": "hold expires during approval and is not submitted",
       "events": [
         {
           "state": "session_claimed",
@@ -888,8 +888,9 @@
             "service": "Plumbing",
             "slot": "[REDACTED]",
             "starts_at": "2026-11-13T05:30:00.000Z",
-            "status": "expired",
-            "quoted_price": 1200
+            "status": "hold_expired",
+            "quoted_price": 1200,
+            "expires_at": "2026-11-10T16:35:27.138Z"
           },
           "latencyMs": 0
         },
@@ -1090,6 +1091,18 @@
           "latencyMs": 0
         },
         {
+          "state": "request_committed",
+          "details": {
+            "uniqueRequests": 1
+          }
+        },
+        {
+          "state": "response_timeout",
+          "details": {
+            "code": "timeout"
+          }
+        },
+        {
           "state": "action_outcome",
           "details": {
             "kind": "book",
@@ -1135,6 +1148,12 @@
             "quoted_price": 1200
           },
           "latencyMs": 0
+        },
+        {
+          "state": "idempotent_retry",
+          "details": {
+            "uniqueRequests": 1
+          }
         },
         {
           "state": "action_outcome",
